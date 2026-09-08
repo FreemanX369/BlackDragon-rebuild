@@ -1,0 +1,461 @@
+{
+  "schema": "bd-build-test-execution/1.0",
+  "note": "59 regression groups, 232 production-fixture assertions, 11 mutation kills and 12 instrumented host fixtures are distinct counts; they do not imply all 56 planned PRD cases passed.",
+  "cases": [
+    {
+      "id": "Q01",
+      "planned_title": "Source identity và drift",
+      "required_tier": "static",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "source/default manifest",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q02",
+      "planned_title": "Unfunded pre-arm BUY",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "protection_integration: unfunded BUY",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q03",
+      "planned_title": "SELL và multi-leg symmetry",
+      "required_tier": "host+native",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q04",
+      "planned_title": "Funded/partial progression",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "protection_integration: funded submission only; partial fill not simulated",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q05",
+      "planned_title": "PY–RH coexistence thực sự trim",
+      "required_tier": "native+tester",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q06",
+      "planned_title": "Reject đồng bộ modify",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "execution_outcomes: request alone, pending partial callback and live server order cannot settle; actual partial effect persists",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q07",
+      "planned_title": "Reject async modify",
+      "required_tier": "host+native-async-injection",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "protection_integration + execution_outcomes: no-effect consumed durably, journal exits pending, retry deadline retained",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q08",
+      "planned_title": "Reject async close/trim",
+      "required_tier": "host+native-async-injection",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "outcome_store + execution_outcomes: UNKNOWN cannot ACK or resubmit; terminal remains until consumer proof",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q09",
+      "planned_title": "Late ACK và duplicate callback",
+      "required_tier": "host+native-async-injection",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "outcome_store exact ID/nonce + execution_outcomes duplicate ACK and unconsumed terminal; native partial callback permutations pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q10",
+      "planned_title": "Unknown outcome qua restart",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "execution_outcomes restores UNKNOWN/partial terminal; atomic outcome_store filesystem seam; real crash ordering pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q11",
+      "planned_title": "Cursor chéo hướng F03",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "arcs_replay: skewed BUY/SELL cursors produce loss55 exactly once",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q12",
+      "planned_title": "Đảo hướng và cùng timestamp",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "arcs_replay: repeat overlap dedup; source direction-first merge sort; native same-ms phase ambiguity must reconcile",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q13",
+      "planned_title": "Deal cũ ngoài overlap window",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "arcs_replay accepts older exact live receipt despite cursor; arcs_checkpoint rejects missing/outside retained phase proof",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q14",
+      "planned_title": "DEAL_UPDATE/DELETE",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "arcs_replay: UPDATE/DELETE delta, duplicate delete, historical funding/trim classification; daily cash replacement",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q15",
+      "planned_title": "Cash round trip 7.6",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "cash_integration: 7.6 and duplicate",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q16",
+      "planned_title": "Entry hôm trước/close hôm nay",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "cash_integration: midnight and overnight",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q17",
+      "planned_title": "Partial close và OUT_BY",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "cash_integration: Recovery 0.8",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q18",
+      "planned_title": "Ownership và fee không phân bổ",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "cash_integration: immutable scope/manual",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q19",
+      "planned_title": "History unavailable và recovery",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "cash_integration: history retry",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q20",
+      "planned_title": "Mẫu số ngày/external flows",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "accounting_host: external deposit, unchanged session anchor, scoped restart and new day; native Core/Recovery parity pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q21",
+      "planned_title": "Ticket khác identifier",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "accounting_host: immutable ID distinct from changed live ticket and zero-ID rejection",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q22",
+      "planned_title": "Commission unavailable/option OFF",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "accounting_host: unavailable/empty history and recovery; OFF path source/observation support only",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q23",
+      "planned_title": "Retention capacity boundary",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "persistence_host and arcs_checkpoint exercise 65535/65536/65537 using actual production writer/load validation via host filesystem seam",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q24",
+      "planned_title": "Compaction + late duplicate",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "outcome_store settled-only compaction + retired nonce duplicate; arcs_checkpoint old-cycle receipt/epoch floor; native RH tombstone ordering pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q25",
+      "planned_title": "Crash mọi ranh giới file",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "persistence_host, outcome_store, arcs_checkpoint: failed open/write/replace, CRC/truncation, scoped payload validation; real OS crash not simulated",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q26",
+      "planned_title": "Migration và rollback",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "persistence_host PY v1/v2 and flat OFF watermark; ARCS legacy migration branch statically checked, native legacy binary migration pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q27",
+      "planned_title": "Snapshot stale/external mutation",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "position_integration: ID/role/generation index, weighted aggregates, order, invalidated/out-of-observation fallback",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q28",
+      "planned_title": "Sum không sort, order đúng",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "position_integration: scoped units/count/weighted sum and stable order; no build/sort in sum-only consumers",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q29",
+      "planned_title": "Backoff deadlines",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "protection_integration: retry deadline",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q30",
+      "planned_title": "Exhaust budget/restart/emergency",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "protection_integration cap8 plus persistence_host retry state and invalid exhausted-budget rejection; native restart/emergency pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q31",
+      "planned_title": "OFF history cache qua giây",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "campaign_incremental: quiet tick does not re-read history, OFF/ON transaction integration source checked",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q32",
+      "planned_title": "History cache invalidation",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "campaign_incremental: duplicate/update/delete, opening ownership hydration, unavailable history retry and revision-gap rebuild",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q33",
+      "planned_title": "Counter scope toàn EA",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "LocalMetrics whole-EA platform wrappers and handler/subsystem scopes source checked; no native timing claim",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q34",
+      "planned_title": "Paired controlled benchmark",
+      "required_tier": "native+tester",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q35",
+      "planned_title": "Differential B1→C",
+      "required_tier": "native+tester",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q36",
+      "planned_title": "ADX init failure",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "adx_host: invalid handle and Init failure; native pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q37",
+      "planned_title": "ADX warmup buffer",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "adx_host: absent CopyBuffer, threshold, NaN/infinity/EMPTY_VALUE; native pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q38",
+      "planned_title": "Profit oracle BUY/SELL",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "profit_oracle BUY/SELL adapter assertions; RunT1725Modules native OrderCalcProfit probe enrolled but not run",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q39",
+      "planned_title": "Bracket/tick bisection",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "profit_oracle: bounded integer-tick solver, bracket and monotonicity failures; runtime formulas unchanged",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q40",
+      "planned_title": "Profit input failure/fee reserve",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "profit_oracle: explicit fee reserve and invalid/failed platform input; no unknown-to-zero",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q41",
+      "planned_title": "Established regression",
+      "required_tier": "host+static",
+      "status": "PASS",
+      "support": "59/59 established/current host regression groups and source/validator checks; HOST_GATE_RESULTS.json",
+      "full_acceptance_pass": true
+    },
+    {
+      "id": "Q42",
+      "planned_title": "Atomic ledger apply/cursor",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "arcs_replay paired restart receipt/cash + arcs_checkpoint failed replace preserves previous complete payload in host filesystem seam",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q43",
+      "planned_title": "Native source/artifact correlation",
+      "required_tier": "native",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q44",
+      "planned_title": "Completed tester matrix",
+      "required_tier": "tester",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q45",
+      "planned_title": "Callback load/slow handler",
+      "required_tier": "native",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q46",
+      "planned_title": "Scale positions/history",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "host capacity boundaries and sorted caches; native position/history scaling benchmark not run",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q47",
+      "planned_title": "Noisy/incomplete benchmark",
+      "required_tier": "static+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "compare_benchmark_test: seven synthetic validation cases; incomplete/hash/trace/config/noisy input refused or inconclusive, not a native benchmark",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q48",
+      "planned_title": "Critical mutation sensitivity",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "M01-M11 compile and fail intended behavioral assertions after isolated defect injection; native mutation tier pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q49",
+      "planned_title": "Independent re-audit",
+      "required_tier": "review",
+      "status": "NOT_RUN",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q50",
+      "planned_title": "No inferred approval/release",
+      "required_tier": "static+review",
+      "status": "NOT_RUN",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q51",
+      "planned_title": "Allowed paths/default preservation",
+      "required_tier": "static+review",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "source/default contract",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q52",
+      "planned_title": "Restart mọi group phase",
+      "required_tier": "native",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q53",
+      "planned_title": "Monotone floor dưới ADD/partial",
+      "required_tier": "host+native",
+      "status": "UNTESTABLE",
+      "support": "No complete evidence for this planned case",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q54",
+      "planned_title": "RH trim ownership/credit",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "arcs_replay: PY RH trim never funds Core; correction/delete retains original baseline classification after layer closed",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q55",
+      "planned_title": "Mutation TOCTOU identity",
+      "required_tier": "native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "execution_outcomes ticket rollover cannot prove close; source final live ID/volume/order checks, actual TOCTOU runtime pending",
+      "full_acceptance_pass": false
+    },
+    {
+      "id": "Q56",
+      "planned_title": "Phased refactor/property invariants",
+      "required_tier": "host+native",
+      "status": "HOST_SUPPORT_NATIVE_PENDING",
+      "support": "source composition/wiring + production fixtures; complete native differential trace remains pending",
+      "full_acceptance_pass": false
+    }
+  ],
+  "candidate": "15.02 / T17.25",
+  "host_regression_groups": 59,
+  "production_fixture_assertions": 232,
+  "mutation_killed": 11,
+  "sanitizer_fixtures": 12,
+  "native_suites_enrolled": 34,
+  "native_suites_executed": 0
+}

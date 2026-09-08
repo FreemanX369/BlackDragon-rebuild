@@ -1,0 +1,61 @@
+{
+  "mode": "Full",
+  "allowed_paths": [
+    "BlackDragon_v14/Include/BlackDragon/Recovery/**",
+    "BlackDragon_v14/Scripts/BlackDragon/Tests/**",
+    "BlackDragon_v14/docs/vibecode/T1726_INCIDENT_20260908/**",
+    "START_HERE.md",
+    "BlackDragon_v14/docs/vibecode/PROJECT_STATE.yaml"
+  ],
+  "forbidden": [
+    "inputs/defaults",
+    "existing historical evidence",
+    "live actions",
+    "unproven release claims"
+  ],
+  "guards": [
+    {
+      "id": "RETRO-A1",
+      "status": "UNTESTABLE",
+      "required_evidence": "generation and exact units",
+      "checker": "incident regression + native evidence",
+      "waiver_allowed": false
+    },
+    {
+      "id": "RETRO-A2",
+      "status": "UNTESTABLE",
+      "required_evidence": "runtime failure scope",
+      "checker": "incident regression + native evidence",
+      "waiver_allowed": false
+    },
+    {
+      "id": "RETRO-A5",
+      "status": "UNTESTABLE",
+      "required_evidence": "fresh history snapshot",
+      "checker": "incident regression + native evidence",
+      "waiver_allowed": false
+    },
+    {
+      "id": "RETRO-A6",
+      "status": "UNTESTABLE",
+      "required_evidence": "duplicate/ordering",
+      "checker": "incident regression + native evidence",
+      "waiver_allowed": false
+    },
+    {
+      "id": "RETRO-A7",
+      "status": "UNTESTABLE",
+      "required_evidence": "atomic state reload",
+      "checker": "incident regression + native evidence",
+      "waiver_allowed": false
+    },
+    {
+      "id": "RETRO-A8",
+      "status": "UNTESTABLE",
+      "required_evidence": "proof available until consumed",
+      "checker": "incident regression + native evidence",
+      "waiver_allowed": false
+    }
+  ],
+  "verification": "VERIFICATION.json"
+}

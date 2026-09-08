@@ -1,0 +1,10 @@
+id: T1726-INCIDENT-20260908
+mode: Full
+baseline: supplied T17.26 (upstream 209dcdfb64bd18f454127cc21497c099f542452e)
+requirements:
+  - Preserve exact protective-close proof and actual cash once.
+  - Preserve all inputs and strategy decisions.
+  - Diagnose persisted/live/proven mismatch and candidate exclusions.
+  - Fix only demonstrated lifecycle faults; no blind removal of reconciliation.
+  - DCA runtime phase correct; first stop cause logged once per EA instance.
+  - Regression partial TP, retained G1, active G2, Overlap, SL and duplicates.

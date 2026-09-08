@@ -1,0 +1,62 @@
+project: BlackDragon v15.03 / T17.26 protective SL fix
+repository: hoaithivo0511-eng/BD-ea-remake
+branch: codex/t1726-protective-sl-fix
+pull_request: 28
+pull_request_state: LOCAL_FIX_BRANCH_NOT_PUSHED
+methodology: VibeCodeKit-MQL5 Full
+canonical:
+  entry_point: BlackDragon_v14/Experts/BlackDragon/BlackDragon.mq5
+  product_version: '15.03'
+  runtime_lineage: T17.26 protective SL fix on T17.25
+  dashboard: REMOVED
+  signal_overlay: WMF_OPTIONAL_PRESERVED
+  workflow: .github/workflows/verify-current.yml
+locked_baseline:
+  remote_head: 40c424cfa71b6742414b012e9d67d3294003f38e
+  remote_tree: ce4749ef21409b599f54e195826780dad3c25b4e
+  local_tree_equal: false
+  pr_draft: true
+stages:
+  T17_21_readable_comments:
+    status: VERIFIED_IN_T17_22_REGRESSION
+    contract: BlackDragon_v14/docs/vibecode/T17_21_comments/AI-BUILD-CONTRACT.json
+    separator: '|'
+    legacy_readers: true
+    trade_logic_changes: false
+  T17_22_core_py_protection:
+    status: IMPLEMENTED_LOCAL_VPS_VERIFIED_CI_PENDING
+    contract: BlackDragon_v14/docs/vibecode/T17_22_py_protection/AI-BUILD-CONTRACT.json
+    modes: OFF_VIRTUAL_BROKER
+    rh_coordination: true
+    fresh_settlement_snapshot: required
+  T17_25_pr28_source_completion:
+    status: APPROVED_SOURCE_SCOPE_IMPLEMENTED_HOST_VERIFIED_NATIVE_PENDING
+    contract: BlackDragon_v14/docs/vibecode/BD_PR28_REMEDIATION/AI-BUILD-CONTRACT.json
+    remaining: BlackDragon_v14/docs/vibecode/BD_PR28_REMEDIATION/REMAINING_WORK.md
+  T17_26_protective_sl:
+    status: SOURCE_IMPLEMENTED_HOST_VERIFIED_NATIVE_PENDING
+    contract: BlackDragon_v14/docs/vibecode/T17_26_protective_sl/AI-BUILD-CONTRACT.json
+    handover: BlackDragon_v14/docs/vibecode/T17_26_protective_sl/HANDOVER.md
+runtime_release_gates:
+  deterministic_models: HOST_42_OF_42_PASS
+  source_invariants: HOST_18_OF_18_GROUPS_PASS
+  production_body_fixtures: HOST_364_ASSERTIONS_PASS
+  metaeditor_compile: DEFERRED_BY_OWNER
+  native_mt5_scripts: UNTESTABLE_35_ENROLLED_NOT_RUN
+  mutation_sensitivity: HOST_14_OF_14_KILLED
+  undefined_behavior_bounds: HOST_13_OF_13_PASS
+  exact_head_provenance: LOCAL_MANIFEST_ONLY
+  owner_strategy_tester: UNTESTABLE_NO_BACKEND
+  ready_for_review: true
+  merge: false
+  release: false
+  forward: false
+  live: false
+known_rules:
+- WAIT_RESET and ARMED block Core DCA only; Core Pyramid ADD remains settings-driven.
+- EXHAUSTED blocks DCA and Pyramid ADD but not risk-reducing Peel/close.
+- ShowWmfSignals and WMF arrows are not part of the removed dashboard.
+- Native compile and scripts are not Strategy Tester PASS.
+- Historical governance is frozen below docs/vibecode/archive.
+- Never force-push local divergent ancestry; create a commit on exact remote parent
+  and update ref with force=false.

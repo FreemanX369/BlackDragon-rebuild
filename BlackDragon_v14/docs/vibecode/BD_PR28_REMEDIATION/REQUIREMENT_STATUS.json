@@ -1,0 +1,171 @@
+{
+  "schema": "bd-build-progress/2.0",
+  "candidate": "15.02 / T17.25",
+  "status": "APPROVED_SOURCE_SCOPE_IMPLEMENTED_HOST_VERIFIED_NATIVE_PENDING",
+  "approved_source_scope_complete": true,
+  "full_prd_acceptance_complete": false,
+  "requirements": [
+    {
+      "id": "R-001",
+      "title": "Provenance / authority",
+      "status": "HOST_VERIFIED",
+      "source_scope_implemented": true,
+      "source": "BASELINE_SOURCE.json; BUILD_AUTHORITY.json; package MANIFEST.json",
+      "detail": "PR branch rechecked at 40c424cf; full candidate tree, input surface and source/test hashes bound in delivery manifest.",
+      "remaining_acceptance": "Exact native artifact correlation remains Q43."
+    },
+    {
+      "id": "R-002",
+      "title": "Pre-arm exposure",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "Pyramid/PyramidProtection.mqh; Pyramid/PyramidProtectionPolicy.mqh",
+      "detail": "Preserves upstream WAIT_UNFUNDED guard; no arm/modify before funding; positive progression, final live checks and trim obligations retained.",
+      "remaining_acceptance": "Native BUY/SELL, actual RH trim, monotone floor under ADD/partial."
+    },
+    {
+      "id": "R-003",
+      "title": "Durable async outcomes",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "OperationResultStore.mqh; ExecutionLayer.mqh; Pyramid/PyramidProtection.mqh",
+      "detail": "Scoped durable INTENT before send; pending/unknown/applied/partial/no-effect/settled lifecycle; terminal retained until durable consumer ACK; live order and immutable-ID checks; restart restoration.",
+      "remaining_acceptance": "Native callback permutations, crash boundary and broker request/partial-fill behavior."
+    },
+    {
+      "id": "R-004",
+      "title": "Replay and correction",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "Recovery/RecoveryArcsLedger.mqh; Recovery/RecoveryArcsStack.mqh",
+      "detail": "Exact receipt dedup, direction-first replay, bounded overlap, scan watermark, timestamp/deal merge sort, UPDATE/DELETE undo+apply, historic funding classification and atomic cash/receipt checkpoint.",
+      "remaining_acceptance": "Native crash/late callbacks; missing or ambiguous historical phase goes to reconciliation."
+    },
+    {
+      "id": "R-005",
+      "title": "Commission identity / validity",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "BasketManager.mqh",
+      "detail": "History by POSITION_IDENTIFIER, missing history remains invalid, bounded retry restores readiness without a new topology event.",
+      "remaining_acceptance": "Native ticket rollover and broker history availability."
+    },
+    {
+      "id": "R-006",
+      "title": "Daily cash",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "CashLedger.mqh; BasketManager.mqh; Recovery/RecoveryT165GuardScope.mqh",
+      "detail": "Shared booking-day reducer includes profit/swap/commission/fee, exact opening ownership, entry fees, correction and rollover; floating avoids double booking.",
+      "remaining_acceptance": "Native Core/Recovery parity and broker fee attribution."
+    },
+    {
+      "id": "R-007",
+      "title": "Daily denominator",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "StrategyT176Base.mqh; Recovery/RecoveryT165GuardScope.mqh",
+      "detail": "D-202 scoped denominator preserved; host external-deposit, restart and rollover cases.",
+      "remaining_acceptance": "This is not exact midnight account balance; native scope parity pending."
+    },
+    {
+      "id": "R-008",
+      "title": "PositionBook",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "PositionBook.mqh; Recovery/RecoveryArcsBook.mqh",
+      "detail": "Immutable decision observation with ID index, role/direction/generation aggregates, stable order index, live cash refresh, revision/validity and explicit scope end.",
+      "remaining_acceptance": "One whole-account capture per Recovery decision remains; native missed-event/final mutation freshness qualification."
+    },
+    {
+      "id": "R-009",
+      "title": "Incremental campaign",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "Pyramid/CampaignLedger.mqh; Pyramid/CorePyramid.mqh",
+      "detail": "Sorted exact deal/owner cache; ordinary owned exit uses delta; corrections reduce cached records; history bootstrap only for initialization, campaign change, revision gap or recovery. OFF mode integrated.",
+      "remaining_acceptance": "Native callback-order/history stress and behavior trace."
+    },
+    {
+      "id": "R-010",
+      "title": "Streaming aggregates",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "PositionBook.mqh; Recovery/RecoveryArcsBook.mqh; Recovery/RecoveryArcsStack.mqh",
+      "detail": "Sum/count uses scoped aggregates; saturation no longer builds/sorts Core book; ordered consumers retain time/ticket ordering.",
+      "remaining_acceptance": "Native LIFO/oldest/threshold parity and scan counts."
+    },
+    {
+      "id": "R-011",
+      "title": "Bounded persistence",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "Diagnostics/AtomicSnapshot.mqh; OperationResultStore.mqh; Recovery/RecoveryArcsLedger.mqh; Pyramid/PyramidProtection.mqh",
+      "detail": "Atomic validated payloads, settled-prefix outcome compaction, receipt/epoch retention floors, RH tombstone retirement only after durable receipt proof, PY v1/v2 and flat OFF watermark loading.",
+      "remaining_acceptance": "Native MQL POD layout, atomic replace/crash, active-state migration and rollback qualification."
+    },
+    {
+      "id": "R-012",
+      "title": "Retry scheduler",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "Pyramid/PyramidProtection.mqh",
+      "detail": "Persisted 1/2/4/8/16/30 second deadlines; 8 definitive rejects reconcile while retaining obligation. Unknown outcomes never become no-effect from timeout.",
+      "remaining_acceptance": "Native server clock, restart and emergency exit liveness."
+    },
+    {
+      "id": "R-013",
+      "title": "Local diagnostics",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "Diagnostics/LocalMetrics.mqh; Experts/BlackDragon/BlackDragon.mq5",
+      "detail": "Default-OFF handler/subsystem histograms and counters for pool calls, visits, selection, sort items, logical allocation requests, state bytes/I/O time, transport and reconciliation. No network or per-tick logging.",
+      "remaining_acceptance": "Native wrapper compile and actual measurements; histograms return intervals, allocation bytes are logical requests."
+    },
+    {
+      "id": "R-014",
+      "title": "Controlled benchmark",
+      "status": "TOOLING_IMPLEMENTED_MEASUREMENT_PENDING",
+      "source_scope_implemented": true,
+      "source": "Scripts/BlackDragon/Tests/compare_benchmark.py; BENCHMARK_PLAN.json",
+      "detail": "Paired native-export validator checks five pairs, hashes, environment/set/data/profile/model/warmup/end date, trace equality and noise; reports medians/spreads and latency intervals.",
+      "remaining_acceptance": "B1 is not natively qualified/frozen. No native benchmark, 50% scan gain or 5% latency claim; D-206 budget remains proposed."
+    },
+    {
+      "id": "R-015",
+      "title": "ADX validity",
+      "status": "IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "Filters/AdxFilter.mqh",
+      "detail": "Inherited fail-closed policy retained; rejects invalid handle, absent buffer, NaN, infinity and EMPTY_VALUE.",
+      "remaining_acceptance": "Native initialization/warmup and exit liveness."
+    },
+    {
+      "id": "R-016",
+      "title": "Profit oracle",
+      "status": "VALIDATION_SOURCE_IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "ProfitOracle.mqh; Scripts/BlackDragon/Tests/RunT1725Modules.mq5",
+      "detail": "Validation-only OrderCalcProfit cash oracle with explicit costs/reserve and bounded integer-tick bisection; BUY/SELL, bracket, monotonicity and failure guards.",
+      "remaining_acceptance": "Broker account-currency proof pending. Runtime SL/funding formula replacement remains conditional under D-205."
+    },
+    {
+      "id": "R-017",
+      "title": "Phased composition",
+      "status": "APPROVED_PHASE_IMPLEMENTED_NATIVE_PENDING",
+      "source_scope_implemented": true,
+      "source": "PositionBook.mqh; CashLedger.mqh; Pyramid/CampaignLedger.mqh; OperationResultStore.mqh; Recovery/RecoveryArcsLedger.mqh",
+      "detail": "State/cache/persistence concerns extracted behind existing compatibility interfaces. Full inheritance teardown is deliberately conditional on a qualified native trace.",
+      "remaining_acceptance": "Native differential trace required before removing further wrappers; full teardown is not claimed."
+    },
+    {
+      "id": "R-018",
+      "title": "Delivery / re-audit",
+      "status": "SOURCE_HANDOVER_HOST_VERIFIED_NATIVE_REVIEW_PENDING",
+      "source_scope_implemented": true,
+      "source": "HOST_VERIFY.md; TEST_EXECUTION.json; RETRO_REVIEW.md; package MANIFEST.json",
+      "detail": "Full source, patch, docs, reproducible host runner and exact-tree package evidence. Same agent performed builder and verifier roles; no independent-human audit claim.",
+      "remaining_acceptance": "Native compile delegated to owner, independent audit and native acceptance remain open."
+    }
+  ]
+}

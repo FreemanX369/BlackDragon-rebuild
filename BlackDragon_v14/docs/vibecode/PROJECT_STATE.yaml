@@ -1,0 +1,13 @@
+project: BlackDragon v15.03 / T17.26 incident fix 20260908
+branch: fix/t1726-protective-refresh-20260908
+methodology: vibecode-mql5 Full
+active_contract: BlackDragon_v14/docs/vibecode/T1726_INCIDENT_20260908/AI-BUILD-CONTRACT.json
+active_spec: BlackDragon_v14/docs/vibecode/T1726_INCIDENT_20260908/EA-SPEC.yaml
+active_decisions: BlackDragon_v14/docs/vibecode/T1726_INCIDENT_20260908/DECISIONS.yaml
+active_verification: BlackDragon_v14/docs/vibecode/T1726_INCIDENT_20260908/VERIFICATION.json
+historical_state: BlackDragon_v14/docs/vibecode/T1726_INCIDENT_20260908/BASELINE_PROJECT_STATE.yaml
+native_compile: PASS_0_ERRORS_0_WARNINGS
+native_replay: PASS_LAST_AVAILABLE_TICK_REAL6
+original_real38_tape: UNVERIFIED
+native_restart_matrix: UNVERIFIED
+release_eligible: false

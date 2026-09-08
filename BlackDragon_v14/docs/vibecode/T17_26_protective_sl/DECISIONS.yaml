@@ -1,0 +1,26 @@
+owner_approval: current user explicitly authorizes fixing according to the completed audit plan
+changes:
+  - id: CR-01
+    current: protective identity rejects fills outside spread-derived tolerance
+    proposed: exact programmed-SL ownership proof independent of fill quality
+    status: approved_for_implementation
+    tests: classifier gap/spread/negative identity
+  - id: CR-02
+    current: Overlap refresh can retire before durable protective deal receipt
+    proposed: reuse atomic ledger with versioned protective receipt and campaign identity
+    status: approved_for_implementation
+    tests: refresh/callback ordering, duplicate, correction, restart, old checkpoint
+  - id: CR-03
+    current: cash already uses actual broker deal values
+    proposed: preserve actual cash/costs; share receipt settlement without projected SL credit
+    status: retained_and_verified
+    tests: actual cash, fees, correction and duplicate fixtures
+  - id: CR-04
+    current: runtime entry gate reports startup error and appends ambient LastError
+    proposed: explicit readiness phase/context and local API diagnostics; retain stop policy
+    status: approved_for_implementation
+    tests: initial vs runtime gate; external failure still stops tester
+  - id: CR-05
+    current: cross-module native incident not covered by prior host gates
+    proposed: production-method regression plus native runbook; no native PASS inferred
+    status: approved_for_implementation
