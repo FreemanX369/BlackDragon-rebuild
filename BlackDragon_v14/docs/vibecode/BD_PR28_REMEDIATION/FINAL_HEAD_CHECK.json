@@ -1,0 +1,10 @@
+{
+  "schema": "bd-remote-head-check/1",
+  "recorded_utc": "2026-09-06T08:55:01.641904+00:00",
+  "command": "git ls-remote origin refs/heads/feat/t17-full-pyramid refs/heads/main",
+  "exit_code": 0,
+  "pr_branch_head": "40c424cfa71b6742414b012e9d67d3294003f38e",
+  "main_head": "ed3c4f5ee4c007407d75fb470ce3a8352b289a60",
+  "upstream_drift": false,
+  "note": "Read-only branch check; PR open/draft state is inherited metadata, not refreshed by ls-remote."
+}

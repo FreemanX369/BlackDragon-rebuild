@@ -1,0 +1,12 @@
+approval: "Tiến hành fix theo plan"
+role: BUILDER
+scope: Audit plan approved in current conversation
+rules:
+  - No live trading or PR merge.
+  - No default changes, proof weakening, or deleting state to hide failure.
+  - Native acceptance remains distinct from host tests.
+verified_remediation:
+  - Native probe demonstrates incomplete current-second history selection (7/8 callback deals missing).
+  - Extend only protective repair query horizon to TimeCurrent()+1.
+  - No change to receipt schema, cash rules or exact volume equality.
+  - This fixes a demonstrated failure mechanism; exact original Real38 trace remains unreproduced.

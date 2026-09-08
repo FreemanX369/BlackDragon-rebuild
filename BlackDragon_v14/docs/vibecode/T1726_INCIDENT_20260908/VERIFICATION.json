@@ -1,0 +1,67 @@
+{
+  "period_gate": "PASS_LAST_AVAILABLE_TICK",
+  "last_simulated_timestamp": "2026.09.07 23:59:58",
+  "events": {
+    "tester_stop": 0,
+    "stop_out": 0,
+    "protective_mismatch": 0,
+    "reconcile_required": 0,
+    "runtime_error": 0,
+    "invalid_stops": 2,
+    "own_broker_sl": 156
+  },
+  "strategy": {
+    "bars": 12249,
+    "deals": 4082,
+    "expected_payoff": 7.18,
+    "gross_loss": -53031.48,
+    "gross_profit": 68066.61,
+    "history_quality_pct": 100,
+    "max_drawdown_pct": 19.94,
+    "net_profit": 15035.13,
+    "profit_factor": 1.28,
+    "recovery_factor": 1.65,
+    "sharpe_ratio": 6.66,
+    "symbols": 1,
+    "ticks": 2744200,
+    "trades": 2095
+  },
+  "compile": {
+    "status": "PASSED",
+    "errors": 0,
+    "warnings": 0,
+    "binary": {
+      "bytes": 776882,
+      "sha256": "7d81a3434854de5d95886a2ed2b8904deb0f0b1aeaacc5225381bf32dd0286c3"
+    }
+  },
+  "job_id": "BT-20260908-083024-AAB184",
+  "symbol": "XAUUSDm",
+  "server": "Exness-MT5Real6",
+  "original_incident_server": "Exness-MT5Real38",
+  "exact_original_tape": "UNVERIFIED",
+  "host_integration": {
+    "passed": 222,
+    "failed": 0
+  },
+  "source_contract_checks": 234,
+  "mutation_revert": {
+    "status": "KILLED",
+    "failed_checks": 27
+  },
+  "native_probe": {
+    "callbacks": 8,
+    "old_range_missing": 7,
+    "new_range_found": 8
+  },
+  "inputs_matched": 150,
+  "release_eligible": false,
+  "nonfatal_broker_reject": {
+    "events": 1,
+    "log_lines": 2,
+    "retcode": 10016,
+    "position": 28,
+    "time": "2026.08.26 01:00:03",
+    "disposition": "State retained for retry; later market-closed at 01:04:59. Successful SL retry is not established."
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "schema": "bd.t1726.build-contract.v1",
+  "mode": "Full",
+  "role": "CONTRACTOR_BUILDER_VERIFIER_SEQUENTIAL",
+  "authorization": "User approved implementation of audit plan in current turn",
+  "scope": [
+    "log",
+    "effective inputs",
+    "local source correlation",
+    "production-method host reproduction",
+    "proposed remediation"
+  ],
+  "allowed_paths": [
+    "BlackDragon_v14/Include/BlackDragon/Recovery/**",
+    "BlackDragon_v14/Include/BlackDragon/Logger.mqh",
+    "BlackDragon_v14/Include/BlackDragon/Config.mqh",
+    "BlackDragon_v14/Experts/BlackDragon/BlackDragon.mq5",
+    "BlackDragon_v14/Scripts/BlackDragon/Tests/**",
+    "BlackDragon_v14/docs/vibecode/T17_26_protective_sl/**",
+    "BlackDragon_v14/docs/vibecode/PROJECT_STATE.yaml",
+    "BlackDragon_v14/docs/vibecode/CURRENT_VERSION.md",
+    "BlackDragon_v14/README.md",
+    "BlackDragon_v14/HANDOFF.md",
+    ".github/workflows/verify-current.yml"
+  ],
+  "forbidden_mutations": [
+    "input declarations/defaults",
+    "live accounts",
+    "historical evidence and approvals",
+    "TesterStop removal"
+  ],
+  "forbidden_claims": [
+    "native compile PASS without native evidence",
+    "native backtest PASS from host",
+    "forward/live eligibility"
+  ],
+  "behavioral_guards": [
+    {
+      "id": "RETRO-A1",
+      "severity": "P1",
+      "class": "hard",
+      "triggered_by": [
+        "state/counters"
+      ],
+      "required_evidence": [
+        "runtime readiness transition; receipt lifecycle boundaries"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Unify ownership state and retain receipts until consumed",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A2",
+      "severity": "P1",
+      "class": "hard",
+      "triggered_by": [
+        "runtime failure policy"
+      ],
+      "required_evidence": [
+        "runtime-to-TesterStop test and explicit approved policy"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Separate INIT/RUNTIME reason; do not loosen unknown-owner fail-closed",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A3",
+      "severity": "P1",
+      "class": "hard",
+      "triggered_by": [
+        "prior owner semantics"
+      ],
+      "required_evidence": [
+        "unchanged inputs/source; CR approval before behavior change"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Keep current defaults; bind future semantic approval to patch contract",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A4",
+      "severity": "P1",
+      "class": "hard",
+      "triggered_by": [
+        "expected test values"
+      ],
+      "required_evidence": [
+        "independent decimal arithmetic for gap/tolerance/volume"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Use independent oracle and production method extraction",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A5",
+      "severity": "P1",
+      "class": "hard",
+      "triggered_by": [
+        "mutable quote/layer identity"
+      ],
+      "required_evidence": [
+        "same immutable deal across changed spread and lifecycle"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Use durable identity, not current quote for ownership",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A6",
+      "severity": "P0",
+      "class": "hard",
+      "triggered_by": [
+        "transaction callbacks"
+      ],
+      "required_evidence": [
+        "duplicate/permutation/restart exact-once settlement"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Persist idempotent deal/campaign receipts before coordinator finalization",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A7",
+      "severity": "P1",
+      "class": "hard",
+      "triggered_by": [
+        "tester persisted state"
+      ],
+      "required_evidence": [
+        "fresh/clean log; isolated future native replay"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Record state namespace/reset and resume tests",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A8",
+      "severity": "P0",
+      "class": "hard",
+      "triggered_by": [
+        "event before finalizer/consumer"
+      ],
+      "required_evidence": [
+        "persist-until-consumed receipt test"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Do not retire receipt while callbacks can consume it",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    },
+    {
+      "id": "RETRO-A9",
+      "severity": "P1",
+      "class": "hard",
+      "triggered_by": [
+        "pip/point/volume scales"
+      ],
+      "required_evidence": [
+        "0.981 gap; 0.682 tolerance; 0.5% closes one step"
+      ],
+      "checker": "run_host_gates.py; t1726_integration.py; t1726_source_contract.py; native matrix still required",
+      "remediation": "Keep SL identity tolerance separate from fill quality",
+      "waiver_allowed": false,
+      "status": "UNTESTABLE",
+      "note": "Host supporting proof in delivery verification; full native runtime guard acceptance is UNTESTABLE."
+    }
+  ],
+  "release_eligible": false,
+  "baseline_inputs": "BASELINE_INPUTS.json",
+  "acceptance_command": "python3 BlackDragon_v14/Scripts/BlackDragon/Tests/run_host_gates.py --out /absolute/new/output",
+  "native_runbook": "NATIVE_RUNBOOK.md",
+  "scope_extension": "Receipt-based topology consumption replaces high-water exclusion after reverse-callback regression exposed a second bug in the authorized incident scope.",
+  "baseline_head": "9d3a76eef330411cabda154dff27a7cb6207ec1a",
+  "baseline_tree": "b6d34560f779fe5090e67e1228bd95a58d538cc4",
+  "status": "SOURCE_IMPLEMENTED_HOST_VERIFIED_NATIVE_PENDING"
+}

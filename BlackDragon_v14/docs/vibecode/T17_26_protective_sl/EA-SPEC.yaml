@@ -1,0 +1,14 @@
+id: BD-T1726-PROTECTIVE-SL
+mode: Full
+baseline: 9d3a76eef330411cabda154dff27a7cb6207ec1a
+owner_authority: 'Tiến hành fix update theo plan. Dùng @Vibecode MQL5 full mode'
+requirements:
+  R1: Own broker SL identity is independent of execution price distance/current spread.
+  R2: Repair, callback and terminal reentry consume the same protective identity classifier.
+  R3: Validate symbol, close entry/type, opening owner/direction/comment cycle, generation and campaign epoch; unknown remains fail-closed.
+  R4: Persist protective receipts atomically with layer/cash state before coordinator retirement; duplicate callbacks do not double-apply.
+  R5: Preserve actual deal profit/swap/commission/fee accounting and correction/deletion behavior.
+  R6: Read old T1725 checkpoints without inventing protective proof; save versioned new receipts.
+  R7: Keep TesterStop fail-closed policy; label readiness failure accurately and log callback evidence.
+  R8: Keep all input declarations/defaults unchanged; no live actions or release claim.
+  R9: Native compile, incident replay, event permutations and restart remain independent required gates.

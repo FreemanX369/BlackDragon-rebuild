@@ -1,0 +1,53 @@
+{
+  "schema": "bd-pr28-gate-status/2",
+  "delivery": "SOURCE_DOCS_HOST_EVIDENCE_FOR_OWNER_COMPILE",
+  "approved_source_scope_complete": true,
+  "full_prd_complete": false,
+  "all_native_gates_passed": false,
+  "gates": [
+    {
+      "id": "G0",
+      "status": "PASS",
+      "evidence": "Explicit owner source-completion authority, unchanged semantic decisions, allowed-path/default checks and exact-tree package manifest"
+    },
+    {
+      "id": "G1",
+      "status": "HOST_PASS_FULL_ACCEPTANCE_PENDING",
+      "evidence": "59 regression groups, 232 production-fixture assertions, 11 mutations killed, 12 UBSan/bounds fixtures",
+      "remaining": "Native tiers in TEST_EXECUTION.json"
+    },
+    {
+      "id": "G2",
+      "status": "DEFERRED_BY_OWNER",
+      "evidence": "Owner requested full source ZIP and will compile later; BuildCandidate.ps1 prepared, not executed in Windows"
+    },
+    {
+      "id": "G3",
+      "status": "NOT_RUN_NATIVE_REQUIRED",
+      "remaining": "Native async, actual partial fills, late/corrected deals, restart/crash, binary migration"
+    },
+    {
+      "id": "G4",
+      "status": "NOT_RUN_MT5_REQUIRED",
+      "remaining": "Completed OFF/VIRTUAL/BROKER and BUY/SELL scenarios with actual RH trim"
+    },
+    {
+      "id": "G5",
+      "status": "NOT_RUN_B1_AND_MT5_REQUIRED",
+      "remaining": "Qualify/freeze correctness B1 and budgets, then five controlled paired native runs with canonical behavior trace"
+    },
+    {
+      "id": "G6",
+      "status": "SELF_REVIEW_COMPLETE_INDEPENDENT_AUDIT_PENDING",
+      "remaining": "Independent verifier review and native finding closure"
+    },
+    {
+      "id": "G7",
+      "status": "NOT_REQUESTED",
+      "remaining": "Separate release/merge/forward/live authority after qualification"
+    }
+  ],
+  "release_eligible": false,
+  "forward_eligible": false,
+  "live_eligible": false
+}

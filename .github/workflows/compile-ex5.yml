@@ -1,0 +1,80 @@
+name: Compile BlackDragon EX5
+on:
+  push:
+    branches: [ import/t1726-incident-fix-20260908 ]
+    paths:
+      - 'BlackDragon_v14/Experts/**'
+      - 'BlackDragon_v14/Include/**'
+      - '.github/workflows/compile-ex5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+env:
+  SOURCE_SHA: ${{ github.sha }}
+jobs:
+  native-compile:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    env:
+      MT5_DIR: 'C:\Program Files\MetaTrader 5'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.SOURCE_SHA }}
+          fetch-depth: 0
+      - name: Download and attest MetaTrader installer
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri 'https://download.mql5.com/cdn/web/metaquotes.software.corp/mt5/mt5setup.exe' -OutFile 'mt5setup.exe' -UseBasicParsing
+          $installerHash=(Get-FileHash '.\mt5setup.exe' -Algorithm SHA256).Hash.ToLowerInvariant()
+          Start-Process -FilePath '.\mt5setup.exe' -ArgumentList '/auto' -Wait
+          Start-Sleep -Seconds 10
+          Get-Process terminal64 -ErrorAction SilentlyContinue | Stop-Process -Force
+          if(-not(Test-Path "$env:MT5_DIR\metaeditor64.exe")){throw 'metaeditor64.exe not found'}
+          if(-not(Test-Path "$env:MT5_DIR\terminal64.exe")){throw 'terminal64.exe not found'}
+          New-Item -ItemType Directory -Force 'build-current-final'|Out-Null
+          $editorVersion=(Get-Item "$env:MT5_DIR\metaeditor64.exe").VersionInfo.FileVersion
+          "INSTALLER_SHA256=$installerHash`nMETAEDITOR_VERSION=$editorVersion" | Out-File 'build-current-final\TOOLCHAIN.txt' -Encoding utf8
+      - name: Mirror exact tree and compile probe
+        shell: pwsh
+        run: |
+          if((git rev-parse HEAD).Trim() -ne $env:SOURCE_SHA){throw 'checkout mismatch'}
+          $t=Start-Process "$env:MT5_DIR\terminal64.exe" -PassThru
+          Start-Sleep -Seconds 40
+          $t|Stop-Process -Force -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 3
+          $mql5="$env:MT5_DIR\MQL5"
+          foreach($d in @('Experts','Include','Scripts')){New-Item -ItemType Directory -Force -Path "$mql5\$d"|Out-Null;Copy-Item "$env:GITHUB_WORKSPACE\BlackDragon_v14\$d\*" "$mql5\$d" -Recurse -Force}
+          $enc=New-Object System.Text.UnicodeEncoding($false,$true)
+          foreach($r in @("$mql5\Experts\BlackDragon","$mql5\Include\BlackDragon","$mql5\Scripts\BlackDragon")){if(Test-Path $r){Get-ChildItem $r -Recurse -File|Where-Object{$_.Extension -in '.mq5','.mqh'}|ForEach-Object{$txt=Get-Content $_.FullName -Raw -Encoding UTF8;[IO.File]::WriteAllText($_.FullName,$txt,$enc)}}}
+          $probe="$mql5\Experts\VKMQLProbe.mq5";[IO.File]::WriteAllText($probe,"#property strict`r`nvoid OnTick(){}`r`n",$enc)
+          $log="$env:GITHUB_WORKSPACE\build-current-final\ProbeEA-compile.log"
+          Start-Process "$env:MT5_DIR\metaeditor64.exe" -ArgumentList "/compile:`"$probe`" /inc:`"$mql5`" /log:`"$log`"" -Wait -NoNewWindow
+          $x=Get-Content $log -Encoding Unicode -Raw;Write-Host $x
+          if(-not(Test-Path "$mql5\Experts\VKMQLProbe.ex5")-or$x-match' : error '-or$x-match' : warning '-or$x-notmatch'0 errors?,\s*0 warnings?'){throw 'ProbeEA compile failed'}
+      - name: Compile BlackDragon EA
+        shell: pwsh
+        run: |
+          $mql5="$env:MT5_DIR\MQL5";$editor="$env:MT5_DIR\metaeditor64.exe";$b="$env:GITHUB_WORKSPACE\build-current-final"
+          $source="$env:GITHUB_WORKSPACE\BlackDragon_v14\Experts\BlackDragon\BlackDragon.mq5";$src="$mql5\Experts\BlackDragon\BlackDragon.mq5";$out="$mql5\Experts\BlackDragon\BlackDragon.ex5";$log="$b\BlackDragon-compile.log"
+          $originalHash=(Get-FileHash $source -Algorithm SHA256).Hash.ToLowerInvariant();$stagedHash=(Get-FileHash $src -Algorithm SHA256).Hash.ToLowerInvariant()
+          Remove-Item $out,$log -Force -ErrorAction SilentlyContinue
+          Start-Process $editor -ArgumentList "/compile:`"$src`" /inc:`"$mql5`" /log:`"$log`"" -Wait -NoNewWindow;$x=Get-Content $log -Encoding Unicode -Raw;Write-Host $x;$e=@(($x-split"`r?`n")|Where-Object{$_-match' : error '});$w=@(($x-split"`r?`n")|Where-Object{$_-match' : warning '});if(-not(Test-Path $out)-or$e.Count-or$w.Count-or$x-notmatch'0 errors?,\s*0 warnings?'){throw "BlackDragon compile failed: $($e.Count) errors/$($w.Count) warnings"};Copy-Item $out $b -Force
+          $head=(git rev-parse HEAD).Trim();$tree=(git show -s --format=%T HEAD).Trim();$hash=(Get-FileHash "$b\BlackDragon.ex5" -Algorithm SHA256).Hash.ToLowerInvariant();$size=(Get-Item "$b\BlackDragon.ex5").Length
+          "REPOSITORY=$env:GITHUB_REPOSITORY`nHEAD=$head`nTREE=$tree`nJOB=$env:GITHUB_JOB`nRUN_ID=$env:GITHUB_RUN_ID`nRUN_ATTEMPT=$env:GITHUB_RUN_ATTEMPT`nRUNNER_OS=$env:RUNNER_OS`nORIGINAL_MQ5_SHA256=$originalHash`nSTAGED_MQ5_SHA256=$stagedHash`nSTAGING_TRANSFORM=UTF16LE_BOM`nBLACKDRAGON_EX5_SHA256=$hash`nBLACKDRAGON_EX5_SIZE=$size"|Out-File "$b\PROVENANCE.txt" -Encoding utf8
+          Copy-Item "$env:GITHUB_WORKSPACE\BlackDragon_v14\docs\vibecode\T17_22_py_protection\OWNER_QA_CHECKLIST.md" $b -Force
+          Write-Host "CURRENT MetaEditor PASS 0 errors/0 warnings HEAD=$head TREE=$tree EX5=$hash SIZE=$size"
+      - name: Bind full source manifest
+        shell: pwsh
+        run: |
+          $files = git ls-files BlackDragon_v14/Experts BlackDragon_v14/Include
+          $manifest = @($files | ForEach-Object { @{path=$_; sha256=(Get-FileHash $_ -Algorithm SHA256).Hash.ToLowerInvariant(); bytes=(Get-Item $_).Length} })
+          $manifest | ConvertTo-Json -Depth 4 | Out-File build-current-final/SOURCE-MANIFEST.json -Encoding utf8
+          "Compile PASS: 0 errors / 0 warnings. Source: $env:SOURCE_SHA" >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blackdragon-t1726-native-compile
+          path: build-current-final/
+          if-no-files-found: warn
+          retention-days: 30
