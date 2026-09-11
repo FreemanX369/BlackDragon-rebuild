@@ -76,7 +76,8 @@ ck('ArrayResize' not in layer and 'SortPositions' not in layer and 'units+=volum
 campaign=body(rd(INC/'Pyramid/CorePyramid.mqh'),'bool RefreshCampaignStats(','bool CampaignHistoryReady(')
 ck('m_statsRevision[dir]==g_pyramidDealRevision' in campaign and 'm_statsAt[dir] == now' not in campaign,'quiet campaign totals use event revision')
 wf=rd(REPO/'.github/workflows/verify-current.yml')
-ck(all(x in wf for x in ['t1724_source_contract.py','t1724_integration.py','t1724_gate_integration.py','run_host_gates.py','RunT1724CashLedgerTests']),'all new evidence layers enrolled in canonical CI')
+host=rd(ROOT/'Scripts/BlackDragon/Tests/run_host_gates.py')
+ck(all(x in wf for x in ['t1724_source_contract.py','run_host_gates.py','RunT1724CashLedgerTests']) and all(x in host for x in ['t1724_integration.py','t1724_gate_integration.py']),'all new evidence layers enrolled in canonical CI')
 ck(not a['release_eligible'] and not a['forward_eligible'] and not a['live_eligible'],'no unsupported release promotion')
 fails=[n for ok,n in checks if not ok]
 print(f'T17.24 source contract: {len(checks)-len(fails)} passed, {len(fails)} failed')
