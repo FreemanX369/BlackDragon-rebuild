@@ -32,14 +32,24 @@ def protective_sl(owner, position, reason_sl, programmed, target, deal_price, sl
     if programmed <= 0 or target <= 0 or deal_price <= 0 or sl_tol < 0 or fill_tol < 0:
         return False
     programmed_match = abs(programmed - target) <= sl_tol + 1e-12
-    # Exact MODIFY proof is supplementary evidence only. It may corroborate a
-    # correct target but must never override a programmed-SL mismatch.
     if modify_proof and not programmed_match:
         return False
     return programmed_match
 
+def flatten_before(cushion_a, ticket_a, cushion_b, ticket_b):
+    a_valid = math.isfinite(cushion_a)
+    b_valid = math.isfinite(cushion_b)
+    if a_valid != b_valid:
+        return a_valid
+    if not a_valid:
+        return ticket_a < ticket_b
+    if abs(cushion_a - cushion_b) > 1e-9:
+        return cushion_a > cushion_b
+    return ticket_a < ticket_b
+
 money = (INC / "MoneyGuard.mqh").read_text(encoding="utf-8")
 identity = (INC / "Recovery/RecoveryExecutionIdentity.mqh").read_text(encoding="utf-8")
+execution = (INC / "ExecutionLayer.mqh").read_text(encoding="utf-8")
 fluid = (INC / "Fluid/FluidRegimeEngine.mqh").read_text(encoding="utf-8")
 identity_test = (ROOT / "BlackDragon_v14/Scripts/BlackDragon/Tests/RunRecoveryIdentityTests.mq5").read_text(encoding="utf-8")
 
@@ -61,6 +71,20 @@ ck("MG_AccountLiquidationReserveCash()" in money and "tpaccreserve" in money,
 sl_pos = money.find("if(MG_MoneySlHit(accountFloating, m_slAccount))")
 tp_pos = money.find("MG_MoneyTpHitBuffered(accountFloating, m_tpAccount, reserve)")
 ck(tp_pos >= 0 and sl_pos > tp_pos, "account SL remains immediate independent path after TP reserve")
+
+# Account-wide liquidation must realize current cash cushion first using a
+# deterministic policy, while still routing every close through ExecutionLayer.
+ck(flatten_before(25.0, 200, -5.0, 100), "positive cushion is ordered before negative")
+ck(flatten_before(25.0, 200, 10.0, 100), "larger cushion is ordered first")
+ck(flatten_before(10.0, 100, 10.0, 200), "equal cushion uses ticket tie-break")
+ck("Recovery_AccountFlattenBeforePure" in identity,
+   "pure account flatten comparator is present")
+ck("PositionGetDouble(POSITION_PROFIT)" in execution and
+   "PositionGetDouble(POSITION_SWAP)" in execution and
+   "Recovery_AccountFlattenBeforePure(keyCushion, keyTicket" in execution,
+   "CloseAllAccount snapshots cash cushion and sorts deterministically")
+ck("ClosePositionEx(tickets[i])" in execution,
+   "ordered flatten still routes through ExecutionLayer close primitive")
 
 # Protective-SL incident: fill slippage must not destroy ownership. Programmed
 # target identity remains authoritative; MODIFY proof cannot rescue a mismatch.
