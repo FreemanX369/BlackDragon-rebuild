@@ -68,11 +68,12 @@ bool Recovery_ProtectiveSlIdentityPure(const bool ownerRecoveryMatch,
    bool programmedMatch =
       MathAbs(programmedSl - durableTargetSl) <= slTolerance + 1e-12;
 
-   // Exact MODIFY proof is command identity, not a quote heuristic. Callers
-   // derive it only from the correlated owner/cycle/ticket+SL command path.
-   // It may recover a durable target that moved just before the broker SL
-   // executed. Wrong owner/position/deal reason remain hard fail-closed above.
-   return programmedMatch || confirmedModifyProof;
+   // Exact MODIFY proof remains supplementary evidence only. It must never
+   // override a programmed-SL mismatch: that would erase the external-mutation
+   // boundary protected by T17.26. T18.01 relaxes only broker fill-price drift.
+   if(confirmedModifyProof && !programmedMatch)
+      return false;
+   return programmedMatch;
 }
 
 bool Recovery_GlobalJournalReleasePure(const bool accountFlat,
