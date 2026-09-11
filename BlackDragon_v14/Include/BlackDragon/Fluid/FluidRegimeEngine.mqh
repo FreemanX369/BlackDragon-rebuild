@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| FluidRegimeEngine.mqh — T18.00 tick-fluid regime engine          |
+//| FluidRegimeEngine.mqh — T18.01 tick-fluid regime engine          |
 //| Reduced-order market-state model; no PDE/CFD solver, no orders.   |
 //| Inputs: native MT5 MqlTick price/time/tick-volume only.           |
 //+------------------------------------------------------------------+
@@ -38,6 +38,18 @@ struct SFluidRegimeState
    int    direction;       // -1 down, 0 neutral, +1 up
    ulong  tickMsc;
    datetime lastLog;
+
+   // T18.01 runtime evidence. These counters never participate in decisions.
+   bool     readyLogged;
+   ulong    dcaEvaluated;
+   ulong    dcaBlocked;
+   ulong    pyEvaluated;
+   ulong    pyBlocked;
+   ulong    rhEvaluated;
+   ulong    rhBlocked;
+   datetime lastDcaBlockLog;
+   datetime lastPyBlockLog;
+   datetime lastRhBlockLog;
 };
 
 SFluidRegimeState g_fluid;
@@ -78,6 +90,20 @@ bool Fluid_Ready()
           g_fluid.samples >= Fluid_SlowWindow();
 }
 
+string Fluid_ModeText()
+{
+   if(!UseFluidRegime) return "OFF";
+   if(FluidMode <= 0) return "SHADOW";
+   if(FluidMode == 1) return "DCA";
+   if(FluidMode == 2) return "DCA+PY";
+   return "DCA+PY+RH";
+}
+
+string Fluid_DirectionText(const int dir)
+{
+   return dir == BD_DIR_BUY ? "BUY" : dir == BD_DIR_SELL ? "SELL" : "UNKNOWN";
+}
+
 string Fluid_StateText()
 {
    if(!UseFluidRegime) return "OFF";
@@ -90,6 +116,44 @@ string Fluid_StateText()
           " S=" + DoubleToString(g_fluid.stress, 3) +
           " crit=" + DoubleToString(g_fluid.criticality, 3) +
           " conf=" + DoubleToString(g_fluid.confidence, 3);
+}
+
+string Fluid_CountersText()
+{
+   return "DCA=" + (string)g_fluid.dcaEvaluated + "/" + (string)g_fluid.dcaBlocked +
+          " PY=" + (string)g_fluid.pyEvaluated + "/" + (string)g_fluid.pyBlocked +
+          " RH=" + (string)g_fluid.rhEvaluated + "/" + (string)g_fluid.rhBlocked;
+}
+
+void Fluid_LogEvidence(const datetime now)
+{
+   if(!Fluid_Ready()) return;
+
+   if(!g_fluid.readyLogged)
+   {
+      Print("Fluid READY | mode=", Fluid_ModeText(), " | ", Fluid_StateText(),
+            " | counters(eval/block) ", Fluid_CountersText());
+      g_fluid.readyLogged = true;
+      g_fluid.lastLog = now;
+      return;
+   }
+
+   if(g_fluid.lastLog == 0 || now - g_fluid.lastLog >= 60)
+   {
+      Print("Fluid HEARTBEAT | mode=", Fluid_ModeText(), " | ", Fluid_StateText(),
+            " | counters(eval/block) ", Fluid_CountersText());
+      g_fluid.lastLog = now;
+   }
+}
+
+void Fluid_LogBlock(const string gate, const int dir, datetime &lastAt)
+{
+   datetime now = TimeCurrent();
+   if(lastAt != 0 && now - lastAt < 60) return;
+   Print("Fluid ", gate, " BLOCK | dir=", Fluid_DirectionText(dir),
+         " | mode=", Fluid_ModeText(), " | ", Fluid_StateText(),
+         " | counters(eval/block) ", Fluid_CountersText());
+   lastAt = now;
 }
 
 void Fluid_UpdateCurrentTick()
@@ -126,6 +190,16 @@ void Fluid_UpdateCurrentTick()
       g_fluid.direction = 0;
       g_fluid.tickMsc = tick.time_msc;
       g_fluid.lastLog = 0;
+      g_fluid.readyLogged = false;
+      g_fluid.dcaEvaluated = 0;
+      g_fluid.dcaBlocked = 0;
+      g_fluid.pyEvaluated = 0;
+      g_fluid.pyBlocked = 0;
+      g_fluid.rhEvaluated = 0;
+      g_fluid.rhBlocked = 0;
+      g_fluid.lastDcaBlockLog = 0;
+      g_fluid.lastPyBlockLog = 0;
+      g_fluid.lastRhBlockLog = 0;
       return;
    }
 
@@ -173,14 +247,8 @@ void Fluid_UpdateCurrentTick()
    g_fluid.tickMsc = tick.time_msc;
    g_fluid.samples++;
 
-   // Shadow/evidence heartbeat. Fixed cadence avoids another optimizer input.
-   datetime now = TimeCurrent();
-   if(FluidMode == 0 && Fluid_Ready() &&
-      (g_fluid.lastLog == 0 || now - g_fluid.lastLog >= 60))
-   {
-      Print("Fluid SHADOW | ", Fluid_StateText());
-      g_fluid.lastLog = now;
-   }
+   // T18.01: evidence exists in every enabled mode, not only SHADOW.
+   Fluid_LogEvidence(TimeCurrent());
 }
 
 bool Fluid_StrongTransport()
@@ -200,22 +268,43 @@ bool Fluid_DirectionAdverse(const int dir)
 bool Fluid_AllowDca(const int coreDir)
 {
    if(!UseFluidRegime || FluidMode < 1 || !Fluid_Ready()) return true;
-   return !(Fluid_StrongTransport() && Fluid_DirectionAdverse(coreDir));
+   g_fluid.dcaEvaluated++;
+   bool blocked = Fluid_StrongTransport() && Fluid_DirectionAdverse(coreDir);
+   if(blocked)
+   {
+      g_fluid.dcaBlocked++;
+      Fluid_LogBlock("DCA", coreDir, g_fluid.lastDcaBlockLog);
+   }
+   return !blocked;
 }
 
 bool Fluid_AllowPyramid(const int dir)
 {
    if(!UseFluidRegime || FluidMode < 2 || !Fluid_Ready()) return true;
-   if(g_fluid.criticality >= MathMax(FluidCriticalThreshold, 0.0)) return false;
-   return !(Fluid_StrongTransport() && Fluid_DirectionAdverse(dir));
+   g_fluid.pyEvaluated++;
+   bool blocked = g_fluid.criticality >= MathMax(FluidCriticalThreshold, 0.0) ||
+                  (Fluid_StrongTransport() && Fluid_DirectionAdverse(dir));
+   if(blocked)
+   {
+      g_fluid.pyBlocked++;
+      Fluid_LogBlock("PY", dir, g_fluid.lastPyBlockLog);
+   }
+   return !blocked;
 }
 
 bool Fluid_AllowRecoveryHedge(const int hedgeDir, const bool initialChild)
 {
-   // First RH child is protective legacy behavior and is never gated.
+   // First RH child is protective legacy behavior and is never gated/counted.
    if(initialChild) return true;
    if(!UseFluidRegime || FluidMode < 3 || !Fluid_Ready()) return true;
-   return !(Fluid_StrongTransport() && Fluid_DirectionAdverse(hedgeDir));
+   g_fluid.rhEvaluated++;
+   bool blocked = Fluid_StrongTransport() && Fluid_DirectionAdverse(hedgeDir);
+   if(blocked)
+   {
+      g_fluid.rhBlocked++;
+      Fluid_LogBlock("RH", hedgeDir, g_fluid.lastRhBlockLog);
+   }
+   return !blocked;
 }
 
 bool Fluid_HasCoreExposure(const int dir)
