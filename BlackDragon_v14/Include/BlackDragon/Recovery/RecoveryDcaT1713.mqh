@@ -22,8 +22,11 @@ public:
 
    bool Allow(const EAContext &ctx, const int dir)
    {
-      // T18 is an additional risk-add admission only. Warm-up, OFF and SHADOW
-      // all fail open; exits and Recovery mechanics never pass through here.
+      // T18 is an additional MQL5 runtime risk-add admission only. Warm-up,
+      // OFF and SHADOW all fail open; exits and Recovery mechanics never pass
+      // through here. Host C++ fixtures intentionally exercise legacy DCA
+      // readiness/state policy without compiling MQL5-only tick dependencies.
+#ifdef __MQL5__
       if(!Fluid_AllowDca(dir))
       {
          Log_WarnEvery("Fluid", "dcablock" + (string)dir,
@@ -31,6 +34,7 @@ public:
                        Recovery_T165WaitLogSecondsPure(RecoveryWaitLogSeconds_));
          return false;
       }
+#endif
 
       if(RecoveryMode_ != recovery_ACTIVE) return true;
       if(m_recovery == NULL || m_basket == NULL)
