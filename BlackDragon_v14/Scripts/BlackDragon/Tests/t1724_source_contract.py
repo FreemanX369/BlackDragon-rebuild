@@ -16,6 +16,12 @@ b=json.loads(rd(D/'BASELINE_SOURCE.json'))
 ck(a['baseline_head']==b['head']==c['implementation_baseline']['head'],'exact implementation baseline bound')
 ck(a['owner_request'].startswith('Dùng @Vibecode MQL5') and a['approval_kind']=='explicit natural-language task instruction','real instruction authorizes build')
 allowed=c['allowed_path_scopes']['all']+[
+ # T18 approved Fluid integration points; exact scope/semantics are locked by
+ # t18_fluid_source_contract.py and the full legacy model/native matrix.
+ 'BlackDragon_v14/Include/BlackDragon/SignalEngine.mqh',
+ 'BlackDragon_v14/Include/BlackDragon/EntryFilters.mqh',
+ 'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryDcaT1713.mqh',
+ 'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryArcsStackT177HedgeLadder.mqh',
  # Explicit T17.26 supersession, verified by t1726_source_contract.py.
  'BlackDragon_v14/Include/BlackDragon/Logger.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryDca.mqh',
