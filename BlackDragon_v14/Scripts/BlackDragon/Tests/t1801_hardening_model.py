@@ -2,7 +2,6 @@
 """T18.01 focused model/source regression for runtime hardening."""
 from pathlib import Path
 import math
-import re
 
 ROOT = Path(__file__).resolve().parents[4]
 INC = ROOT / "BlackDragon_v14/Include/BlackDragon"
@@ -33,7 +32,11 @@ def protective_sl(owner, position, reason_sl, programmed, target, deal_price, sl
     if programmed <= 0 or target <= 0 or deal_price <= 0 or sl_tol < 0 or fill_tol < 0:
         return False
     programmed_match = abs(programmed - target) <= sl_tol + 1e-12
-    return programmed_match or modify_proof
+    # Exact MODIFY proof is supplementary evidence only. It may corroborate a
+    # correct target but must never override a programmed-SL mismatch.
+    if modify_proof and not programmed_match:
+        return False
+    return programmed_match
 
 money = (INC / "MoneyGuard.mqh").read_text(encoding="utf-8")
 identity = (INC / "Recovery/RecoveryExecutionIdentity.mqh").read_text(encoding="utf-8")
@@ -59,17 +62,16 @@ sl_pos = money.find("if(MG_MoneySlHit(accountFloating, m_slAccount))")
 tp_pos = money.find("MG_MoneyTpHitBuffered(accountFloating, m_tpAccount, reserve)")
 ck(tp_pos >= 0 and sl_pos > tp_pos, "account SL remains immediate independent path after TP reserve")
 
-# Protective-SL incident: fill slippage must not destroy ownership; exact
-# MODIFY proof may recover a just-moved durable target, while unproved target
-# mismatch stays fail-closed.
+# Protective-SL incident: fill slippage must not destroy ownership. Programmed
+# target identity remains authoritative; MODIFY proof cannot rescue a mismatch.
 ck(protective_sl(True, True, True, 4647.318, 4647.318, 4647.340, 0.001, 0.001, False),
    "4647.318 programmed SL with 4647.340 fill remains internal")
-ck(protective_sl(True, True, True, 4647.318, 4647.300, 4647.340, 0.001, 0.001, True),
-   "exact MODIFY proof recovers moved durable target")
+ck(not protective_sl(True, True, True, 4647.318, 4647.300, 4647.340, 0.001, 0.001, True),
+   "MODIFY proof cannot override moved durable target")
 ck(not protective_sl(True, True, True, 4647.318, 4647.300, 4647.340, 0.001, 0.001, False),
    "moved target without proof remains external")
-ck("return programmedMatch || confirmedModifyProof;" in identity,
-   "production identity accepts target match or exact MODIFY proof")
+ck("if(confirmedModifyProof && !programmedMatch)" in identity and "return programmedMatch;" in identity,
+   "production identity preserves programmed-target authority")
 ck("4647.318" in identity_test and "4647.340" in identity_test,
    "native identity suite locks observed incident prices")
 
