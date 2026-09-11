@@ -86,10 +86,10 @@ void OnStart()
          Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
                                            4647.318, 4647.318, 4647.340,
                                            0.001, 0.001, false));
-   Check("T18.01 exact MODIFY proof recovers moved durable target",
-         Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
-                                           4647.318, 4647.300, 4647.340,
-                                           0.001, 0.001, true));
+   Check("T18.01 MODIFY proof cannot override moved durable target",
+         !Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
+                                            4647.318, 4647.300, 4647.340,
+                                            0.001, 0.001, true));
    Check("T18.01 moved target without proof remains external",
          !Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
                                             4647.318, 4647.300, 4647.340,
