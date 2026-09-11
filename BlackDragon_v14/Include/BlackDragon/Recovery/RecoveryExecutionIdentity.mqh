@@ -42,6 +42,22 @@ bool Recovery_ExecStrictAmbiguousMustBlockPure(const uint retcode,
    return retcode == TRADE_RETCODE_TIMEOUT || retcode == TRADE_RETCODE_CONNECTION;
 }
 
+// T18.01 account-wide flatten ordering. Higher current cash cushion is sent
+// first; non-finite observations are deterministic last-resort entries. Equal
+// cushions use ticket identity as a stable replay-independent tie breaker.
+bool Recovery_AccountFlattenBeforePure(const double cushionA,
+                                       const ulong ticketA,
+                                       const double cushionB,
+                                       const ulong ticketB)
+{
+   bool aValid = MathIsValidNumber(cushionA);
+   bool bValid = MathIsValidNumber(cushionB);
+   if(aValid != bValid) return aValid;
+   if(!aValid) return ticketA < ticketB;
+   if(MathAbs(cushionA - cushionB) > 1e-9) return cushionA > cushionB;
+   return ticketA < ticketB;
+}
+
 bool Recovery_ProtectiveSlIdentityPure(const bool ownerRecoveryMatch,
                                        const bool positionIdentityMatch,
                                        const long dealReason,
