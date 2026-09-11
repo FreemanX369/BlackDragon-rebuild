@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-"""T18.00 tick-fluid wiring/source contract.
+"""T18.01 tick-fluid wiring + hardening source contract.
 
-This is intentionally a source contract, not a profitability claim. It protects
-integration boundaries while MetaEditor/runtime tests provide behavioral evidence.
+This protects integration boundaries and enrolls focused model/A-B harness tests.
+MetaEditor/native/runtime evidence remains the authority for executable behavior.
 """
 from pathlib import Path
 import re
+import subprocess
+import sys
 
 R = Path(__file__).resolve().parents[4]
 I = R / 'BlackDragon_v14/Include/BlackDragon'
+T = R / 'BlackDragon_v14/Scripts/BlackDragon/Tests'
 checks = []
 
 def ck(ok, name):
@@ -17,12 +20,21 @@ def ck(ok, name):
 def rd(path):
     return (I / path).read_text(encoding='utf-8')
 
+def run_script(path, *args):
+    p = subprocess.run([sys.executable, str(path), *args], cwd=R,
+                       text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    print(p.stdout, end='')
+    return p.returncode, p.stdout
+
 engine = rd('Fluid/FluidRegimeEngine.mqh')
 signal = rd('SignalEngine.mqh')
 filters = rd('EntryFilters.mqh')
 dca = rd('Recovery/RecoveryDcaT1713.mqh')
 rh = rd('Recovery/RecoveryArcsStackT177HedgeLadder.mqh')
 c4 = rd('Recovery/RecoveryArcsStackT177HedgeLadderC4Base.mqh')
+money = rd('MoneyGuard.mqh')
+identity = rd('Recovery/RecoveryExecutionIdentity.mqh')
+identity_test = (T / 'RunRecoveryIdentityTests.mq5').read_text(encoding='utf-8')
 
 # Safe-by-default / optimizer surface.
 ck(re.search(r'input\s+bool\s+UseFluidRegime\s*=\s*false\s*;', engine),
@@ -87,14 +99,49 @@ ck('if(!UseFluidRegime || FluidMode < 2 || !Fluid_Ready()) return true;' in engi
 ck('if(!UseFluidRegime || FluidMode < 3 || !Fluid_Ready()) return true;' in engine,
    'RH child OFF/SHADOW/warmup fail-open')
 
-# No direct martingale/hedge coverage mutation in the MVP.
+# T18.01 observability in all enabled modes.
+for token in ['Fluid READY','Fluid HEARTBEAT','Fluid DCA BLOCK','Fluid PY BLOCK','Fluid RH BLOCK',
+              'dcaEvaluated','dcaBlocked','pyEvaluated','pyBlocked','rhEvaluated','rhBlocked']:
+    ck(token in engine, 'runtime evidence token: ' + token)
+ck('if(FluidMode == 0 && Fluid_Ready()' not in engine,
+   'heartbeat no longer restricted to SHADOW')
+
+# MoneyGuard hardening: positive account TP reserves liquidation cost while
+# account loss-stop remains an independent immediate branch.
+ck('MG_AccountLiquidationReserveCash()' in money and
+   'MG_MoneyTpHitBuffered(accountFloating, m_tpAccount, reserve)' in money,
+   'account Money TP requires liquidation reserve')
+ck('if(MG_MoneySlHit(accountFloating, m_slAccount))' in money,
+   'account Money SL remains immediate')
+ck('Money TP All account WAIT' in money and 'tpaccreserve' in money,
+   'account TP reserve wait is observable')
+
+# Protective-SL identity: fill slippage cannot override immutable identity;
+# exact MODIFY proof may recover a moved durable target, but wrong owner/reason
+# remains fail-closed in the native suite.
+ck('return programmedMatch || confirmedModifyProof;' in identity,
+   'protective SL accepts exact target or exact MODIFY proof')
+ck('4647.318' in identity_test and '4647.340' in identity_test and
+   'moved target without proof remains external' in identity_test,
+   'native identity suite locks observed incident and negative control')
+
+# No direct martingale/hedge coverage mutation in the Fluid engine.
 for forbidden in ['HedgeCoverage','LotMultiplier','Martingale','Lots=','OrderLots']:
     ck(forbidden not in engine, 'no adaptive economics in T18 MVP: ' + forbidden)
+
+# Focused executable Python regressions are enrolled through this canonical
+# source-contract entry point, so repository policy still has one workflow.
+model_rc, model_out = run_script(T / 't1801_hardening_model.py')
+ck(model_rc == 0 and 'HARDENING MODEL GREEN' in model_out,
+   'T18.01 hardening model green')
+ab_rc, ab_out = run_script(T / 't1801_ab_matrix.py', '--self-test')
+ck(ab_rc == 0 and '5 variants PASS' in ab_out,
+   'T18.01 A/B set+evidence harness self-test green')
 
 for ok, name in checks:
     if not ok:
         print('FAIL:', name)
-print(f'T18.00 Fluid source contract: {sum(ok for ok,_ in checks)} passed, {sum(not ok for ok,_ in checks)} failed')
+print(f'T18.01 Fluid/hardening source contract: {sum(ok for ok,_ in checks)} passed, {sum(not ok for ok,_ in checks)} failed')
 if all(ok for ok,_ in checks):
     print('SOURCE CONTRACT GREEN')
 raise SystemExit(not all(ok for ok,_ in checks))
