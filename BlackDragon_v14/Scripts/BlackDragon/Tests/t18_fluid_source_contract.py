@@ -99,10 +99,17 @@ ck('if(!UseFluidRegime || FluidMode < 2 || !Fluid_Ready()) return true;' in engi
 ck('if(!UseFluidRegime || FluidMode < 3 || !Fluid_Ready()) return true;' in engine,
    'RH child OFF/SHADOW/warmup fail-open')
 
-# T18.01 observability in all enabled modes.
-for token in ['Fluid READY','Fluid HEARTBEAT','Fluid DCA BLOCK','Fluid PY BLOCK','Fluid RH BLOCK',
+# T18.01 observability in all enabled modes. Full BLOCK labels are composed by
+# the generic logger plus gate-specific callsites; verify both halves instead
+# of requiring a full literal that does not exist in source text.
+for token in ['Fluid READY','Fluid HEARTBEAT',
               'dcaEvaluated','dcaBlocked','pyEvaluated','pyBlocked','rhEvaluated','rhBlocked']:
     ck(token in engine, 'runtime evidence token: ' + token)
+ck('Print("Fluid ", gate, " BLOCK | dir="' in engine,
+   'runtime evidence generic BLOCK logger')
+for gate in ['DCA','PY','RH']:
+    ck(f'Fluid_LogBlock("{gate}"' in engine,
+       'runtime evidence gate wiring: Fluid ' + gate + ' BLOCK')
 ck('if(FluidMode == 0 && Fluid_Ready()' not in engine,
    'heartbeat no longer restricted to SHADOW')
 
@@ -116,11 +123,12 @@ ck('if(MG_MoneySlHit(accountFloating, m_slAccount))' in money,
 ck('Money TP All account WAIT' in money and 'tpaccreserve' in money,
    'account TP reserve wait is observable')
 
-# Protective-SL identity: fill slippage cannot override immutable identity;
-# exact MODIFY proof may recover a moved durable target, but wrong owner/reason
-# remains fail-closed in the native suite.
-ck('return programmedMatch || confirmedModifyProof;' in identity,
-   'protective SL accepts exact target or exact MODIFY proof')
+# Protective-SL identity: fill slippage does not destroy ownership, but the
+# programmed durable target remains authoritative. MODIFY proof cannot rescue
+# a programmed-target mismatch; wrong owner/reason also remains fail-closed.
+ck('if(confirmedModifyProof && !programmedMatch)' in identity and
+   'return programmedMatch;' in identity,
+   'protective SL preserves programmed-target authority even with MODIFY proof')
 ck('4647.318' in identity_test and '4647.340' in identity_test and
    'moved target without proof remains external' in identity_test,
    'native identity suite locks observed incident and negative control')
