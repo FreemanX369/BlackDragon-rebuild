@@ -6,7 +6,6 @@ finalizes verify-current.yml back to read-only canonical CI and deletes itself.
 Every mutation is exact-match guarded; ambiguity fails closed.
 """
 from pathlib import Path
-import re
 
 ROOT = Path(__file__).resolve().parents[4]
 EXEC = ROOT / "BlackDragon_v14/Include/BlackDragon/ExecutionLayer.mqh"
@@ -110,8 +109,8 @@ if wf.count(anchor) != 1:
 if "t1801_hardening_model.py" not in wf:
     wf = wf.replace(anchor, anchor + extra, 1)
 
-old_native = "@{N='RunRecoveryIdentityTests';P='Recovery T14 identity tests:\\\\s*(\\\\d+) passed,\\\\s*(\\\\d+) failed';E=17}"
-new_native = "@{N='RunRecoveryIdentityTests';P='Recovery T14/T18\\\\.01 identity tests:\\\\s*(\\\\d+) passed,\\\\s*(\\\\d+) failed';E=24}"
+old_native = r"@{N='RunRecoveryIdentityTests';P='Recovery T14 identity tests:\s*(\d+) passed,\s*(\d+) failed';E=17}"
+new_native = r"@{N='RunRecoveryIdentityTests';P='Recovery T14/T18\.01 identity tests:\s*(\d+) passed,\s*(\d+) failed';E=24}"
 if old_native not in wf:
     raise SystemExit("native identity expectation authority missing")
 wf = wf.replace(old_native, new_native, 1)
