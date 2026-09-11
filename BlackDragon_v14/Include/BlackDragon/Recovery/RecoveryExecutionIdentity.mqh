@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| RecoveryExecutionIdentity.mqh — T14 pure identity policy         |
+//| RecoveryExecutionIdentity.mqh — T18.01 identity hardening        |
 //| Purpose   : deterministic request/deal/protective-SL terminal    |
 //|             policy shared by ExecutionLayer and native tests.    |
 //| Invariants: identity evidence may prove execution even when      |
@@ -54,19 +54,25 @@ bool Recovery_ProtectiveSlIdentityPure(const bool ownerRecoveryMatch,
 {
    if(!ownerRecoveryMatch || !positionIdentityMatch || dealReason != DEAL_REASON_SL)
       return false;
-   // T17.26: price quality is not ownership. Keep the compatibility argument
-   // fillTolerance, but never let a mutable quote reclassify an immutable SL.
+   // T17.26/T18.01: fill price quality is not ownership. A broker may execute
+   // a correctly programmed SL several ticks beyond the stop during a gap or
+   // fast market. Therefore dealPrice/fillTolerance are validated only as
+   // finite compatibility inputs and never used as an ownership-distance gate.
    if(!MathIsValidNumber(durableTargetSl) || !MathIsValidNumber(programmedSl) ||
       !MathIsValidNumber(dealPrice) || !MathIsValidNumber(slTolerance) ||
-      durableTargetSl <= 0.0 || programmedSl <= 0.0 || dealPrice <= 0.0 ||
-      slTolerance < 0.0)
+      !MathIsValidNumber(fillTolerance) || durableTargetSl <= 0.0 ||
+      programmedSl <= 0.0 || dealPrice <= 0.0 || slTolerance < 0.0 ||
+      fillTolerance < 0.0)
       return false;
 
-   bool programmedMatch = programmedSl > 0.0 &&
-                          MathAbs(programmedSl - durableTargetSl) <= slTolerance + 1e-12;
-   // Callers may use exact MODIFY proof to recover a moved target BEFORE this
-   // call. A proof for another SL must never override a mismatched target here.
-   return programmedMatch;
+   bool programmedMatch =
+      MathAbs(programmedSl - durableTargetSl) <= slTolerance + 1e-12;
+
+   // Exact MODIFY proof is command identity, not a quote heuristic. Callers
+   // derive it only from the correlated owner/cycle/ticket+SL command path.
+   // It may recover a durable target that moved just before the broker SL
+   // executed. Wrong owner/position/deal reason remain hard fail-closed above.
+   return programmedMatch || confirmedModifyProof;
 }
 
 bool Recovery_GlobalJournalReleasePure(const bool accountFlat,
