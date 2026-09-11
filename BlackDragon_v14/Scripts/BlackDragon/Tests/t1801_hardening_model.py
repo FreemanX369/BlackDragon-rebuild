@@ -100,10 +100,16 @@ ck("4647.318" in identity_test and "4647.340" in identity_test,
    "native identity suite locks observed incident prices")
 
 # Fluid observability must be present in every enabled mode without changing
-# the six-input optimizer surface.
-for token in ["Fluid READY", "Fluid HEARTBEAT", "Fluid DCA BLOCK", "Fluid PY BLOCK", "Fluid RH BLOCK",
-              "dcaEvaluated", "pyEvaluated", "rhEvaluated", "counters(eval/block)"]:
+# the six-input optimizer surface. BLOCK tokens are composed at runtime by the
+# generic logger plus gate-specific callsites, so validate composition instead
+# of requiring impossible literal full strings in source.
+for token in ["Fluid READY", "Fluid HEARTBEAT", "dcaEvaluated", "pyEvaluated", "rhEvaluated", "counters(eval/block)"]:
     ck(token in fluid, "Fluid telemetry source: " + token)
+ck('Print("Fluid ", gate, " BLOCK | dir="' in fluid,
+   "Fluid generic block logger composes runtime BLOCK tokens")
+for gate in ["DCA", "PY", "RH"]:
+    ck(f'Fluid_LogBlock("{gate}"' in fluid,
+       f"Fluid {gate} block telemetry wired")
 ck("if(FluidMode == 0" not in fluid[fluid.find("Fluid_LogEvidence"):fluid.find("bool Fluid_StrongTransport")],
    "Fluid heartbeat is not limited to SHADOW mode")
 
