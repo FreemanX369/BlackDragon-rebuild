@@ -16,6 +16,12 @@ superseded_t1722={
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryDcaT1713.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryArcsStackT177HedgeLadder.mqh',
 
+ # T18.01 approved account-wide positive Money TP hardening. Byte preservation
+ # is superseded only for the liquidation-reserve admission path; side/magic,
+ # DAILY, PctDiff and loss-stop semantics remain protected by their existing
+ # model/native gates. T18.01 hardening/source tests own the new invariant.
+ 'BlackDragon_v14/Include/BlackDragon/MoneyGuard.mqh',
+
  # T17.26 approved incident fix; locked by t1726_source_contract.py and actual production fixtures.
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryExecutionIdentity.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryDca.mqh',
