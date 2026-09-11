@@ -3,11 +3,67 @@
 //| Keeps verified C4 Hedge ladder byte-identical in C4Base.         |
 //| Fix A: ACTIVE/no-TP is read-only and yields DCA/Pyramid.         |
 //| Fix A2: persistence-only bookkeeping never owns Strategy tick.  |
+//| T18: only later RH children may wait on tick-fluid transport.    |
 //+------------------------------------------------------------------+
 #ifndef BD_RECOVERY_ARCS_STACK_T178_RUNTIME_WRAPPER_MQH
 #define BD_RECOVERY_ARCS_STACK_T178_RUNTIME_WRAPPER_MQH
 
+#include "RecoveryArcsBook.mqh"
+#include "RecoveryOpenBarGate.mqh"
+#include "../Fluid/FluidRegimeEngine.mqh"
+
+// T18 keeps the verified C4Base source byte-identical. These two narrow
+// wrappers capture the generation-local live units already read by C4Base and
+// apply Fluid only at its final RH child admission. MQL5 event handling is
+// single-threaded, so this context cannot race another Strategy tick.
+bool                   g_t18RhAdmissionValid = false;
+eRecoveryCoreDirection g_t18RhCoreDir = recovery_CORE_BUY;
+bool                   g_t18RhInitialChild = true;
+
+long Recovery_T18ArcsLayerUnits(const eRecoveryCoreDirection dir,
+                                const int generation,
+                                const double step)
+{
+   long live = Recovery_ArcsLayerUnits(dir, generation, step);
+   g_t18RhCoreDir = dir;
+   g_t18RhInitialChild = (live <= 0);
+   g_t18RhAdmissionValid = generation >= 1 && step > 0.0;
+   return live;
+}
+
+bool Recovery_T18OneOrderPerBarAllows(const int hedgeDir,
+                                      const datetime now,
+                                      string &why)
+{
+   // Preserve T17.20 as the first authority and preserve all of its OFF path.
+   if(!Recovery_OneOrderPerBarAllows(hedgeDir, now, why))
+   {
+      g_t18RhAdmissionValid = false;
+      return false;
+   }
+
+   bool contextMatches = g_t18RhAdmissionValid &&
+                         hedgeDir == Recovery_HedgeDirection(g_t18RhCoreDir);
+   bool initialChild = g_t18RhInitialChild;
+   g_t18RhAdmissionValid = false;
+
+   // Any unexpected call shape fails open to verified T17 behavior.
+   if(!contextMatches) return true;
+
+   int bdHedgeDir = hedgeDir == 0 ? BD_DIR_BUY : BD_DIR_SELL;
+   if(Fluid_AllowRecoveryHedge(bdHedgeDir, initialChild)) return true;
+
+   why = "T18 RH child chờ: tick-fluid đang vận chuyển mạnh ngược hướng Hedge | " +
+         Fluid_StateText();
+   return false;
+}
+
+#define Recovery_ArcsLayerUnits Recovery_T18ArcsLayerUnits
+#define Recovery_OneOrderPerBarAllows Recovery_T18OneOrderPerBarAllows
 #include "RecoveryArcsStackT177HedgeLadderC4Base.mqh"
+#undef Recovery_OneOrderPerBarAllows
+#undef Recovery_ArcsLayerUnits
+
 #include "RecoveryT178RuntimePolicy.mqh"
 
 struct SRecoveryT178SemanticSnapshot
