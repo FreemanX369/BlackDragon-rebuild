@@ -108,6 +108,15 @@ void OnStart()
                                             4480.386, 4480.386, 4480.479,
                                             0.02, 0.50, true));
 
+   // T18.01 account-wide flatten sequencing: realize cushion first while
+   // preserving deterministic ordering when economics are equal.
+   Check("account flatten positive cushion before negative",
+         Recovery_AccountFlattenBeforePure(25.0, 200, -5.0, 100));
+   Check("account flatten larger cushion first",
+         Recovery_AccountFlattenBeforePure(25.0, 200, 10.0, 100));
+   Check("account flatten equal cushion ticket tie break",
+         Recovery_AccountFlattenBeforePure(10.0, 100, 10.0, 200));
+
    // Flat account releases only terminal-proven journal work.
    Check("global flat plus terminal-proven stale journal can release",
          Recovery_GlobalJournalReleasePure(true, true, false));
@@ -115,5 +124,5 @@ void OnStart()
          !Recovery_GlobalJournalReleasePure(true, false, true));
 
    PrintFormat("Recovery T14/T18.01 identity tests: %d passed, %d failed", g_pass, g_fail);
-   if(g_fail == 0) Print("ALL GREEN — execution/protective-SL identity policy passed.");
+   if(g_fail == 0) Print("ALL GREEN — execution/protective-SL/flatten identity policy passed.");
 }
