@@ -2,7 +2,7 @@ name: Verify Current BlackDragon
 
 on:
   push:
-    branches: [ feat/t17-full-pyramid, codex/t1726-protective-sl-fix ]
+    branches: [ feat/t17-full-pyramid, codex/t1726-protective-sl-fix, feat/t18-fluid-tick-regime ]
     paths:
       - 'BlackDragon_v14/**'
       - '.github/workflows/verify-current.yml'
@@ -75,7 +75,7 @@ jobs:
           grep -q 'T17.22 PY protection: 45 passed, 0 failed' build-current-model/t1722_protection_model.log
           grep -q 'T17.23 audit regressions: 14 passed, 0 failed' build-current-model/t1723_audit_regression_model.log
           echo 'CURRENT MODEL REGRESSION GREEN'
-      - name: T17.11 through T17.24 source contracts and production adapters
+      - name: T17.11 through T18 source contracts and production adapters
         shell: bash
         run: |
           set -euo pipefail
@@ -94,7 +94,8 @@ jobs:
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1726_source_contract.py"
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1725_source_contract.py" | tee "build-current-model/t1725-source.log"
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1724_source_contract.py" | tee "build-current-model/t1724-source.log"
-          # Runs t1724_integration.py and t1724_gate_integration.py, then 7 mutations and UBSan/bounds.
+          python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t18_fluid_source_contract.py" | tee "build-current-model/t18-fluid-source.log"
+          # Runs production host integrations, mutation gates and UBSan/bounds.
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/run_host_gates.py" --extended-only --out build-current-model/t1724
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/repository_contract.py" \
             | tee "build-current-model/repository-contract.log"
@@ -158,7 +159,7 @@ jobs:
           "REPOSITORY=$env:GITHUB_REPOSITORY`nHEAD=$head`nTREE=$tree`nJOB=$env:GITHUB_JOB`nRUN_ID=$env:GITHUB_RUN_ID`nRUN_ATTEMPT=$env:GITHUB_RUN_ATTEMPT`nRUNNER_OS=$env:RUNNER_OS`nORIGINAL_MQ5_SHA256=$originalHash`nSTAGED_MQ5_SHA256=$stagedHash`nSTAGING_TRANSFORM=UTF16LE_BOM`nBLACKDRAGON_EX5_SHA256=$hash`nBLACKDRAGON_EX5_SIZE=$size"|Out-File "$b\PROVENANCE.txt" -Encoding utf8
           Copy-Item "$env:GITHUB_WORKSPACE\BlackDragon_v14\docs\vibecode\T17_22_py_protection\OWNER_QA_CHECKLIST.md" $b -Force
           Write-Host "CURRENT MetaEditor PASS 0 errors/0 warnings HEAD=$head TREE=$tree EX5=$hash SIZE=$size"
-      - name: Execute complete 34-suite native matrix
+      - name: Execute complete 35-suite native matrix
         shell: pwsh
         run: |
           $b="$env:GITHUB_WORKSPACE\build-current-final";$ld="$env:MT5_DIR\MQL5\Logs";$tests=@(
