@@ -2,7 +2,7 @@ name: Verify Current BlackDragon
 
 on:
   push:
-    branches: [ feat/t17-full-pyramid, codex/t1726-protective-sl-fix ]
+    branches: [ feat/t17-full-pyramid, codex/t1726-protective-sl-fix, feat/t18-fluid-tick-regime ]
     paths:
       - 'BlackDragon_v14/**'
       - '.github/workflows/verify-current.yml'
@@ -75,7 +75,7 @@ jobs:
           grep -q 'T17.22 PY protection: 45 passed, 0 failed' build-current-model/t1722_protection_model.log
           grep -q 'T17.23 audit regressions: 14 passed, 0 failed' build-current-model/t1723_audit_regression_model.log
           echo 'CURRENT MODEL REGRESSION GREEN'
-      - name: T17.11 through T17.24 source contracts and production adapters
+      - name: T17.11 through T18.01 source contracts and production adapters
         shell: bash
         run: |
           set -euo pipefail
@@ -94,7 +94,10 @@ jobs:
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1726_source_contract.py"
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1725_source_contract.py" | tee "build-current-model/t1725-source.log"
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1724_source_contract.py" | tee "build-current-model/t1724-source.log"
-          # Runs t1724_integration.py and t1724_gate_integration.py, then 7 mutations and UBSan/bounds.
+          python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t18_fluid_source_contract.py" | tee "build-current-model/t18-fluid-source.log"
+          python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1801_hardening_model.py" | tee "build-current-model/t1801-hardening.log"
+          python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/t1801_ab_matrix.py" --self-test | tee "build-current-model/t1801-ab.log"
+          # Runs production host integrations, mutation gates and UBSan/bounds.
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/run_host_gates.py" --extended-only --out build-current-model/t1724
           python3 "BlackDragon_v14/Scripts/BlackDragon/Tests/repository_contract.py" \
             | tee "build-current-model/repository-contract.log"
@@ -158,7 +161,7 @@ jobs:
           "REPOSITORY=$env:GITHUB_REPOSITORY`nHEAD=$head`nTREE=$tree`nJOB=$env:GITHUB_JOB`nRUN_ID=$env:GITHUB_RUN_ID`nRUN_ATTEMPT=$env:GITHUB_RUN_ATTEMPT`nRUNNER_OS=$env:RUNNER_OS`nORIGINAL_MQ5_SHA256=$originalHash`nSTAGED_MQ5_SHA256=$stagedHash`nSTAGING_TRANSFORM=UTF16LE_BOM`nBLACKDRAGON_EX5_SHA256=$hash`nBLACKDRAGON_EX5_SIZE=$size"|Out-File "$b\PROVENANCE.txt" -Encoding utf8
           Copy-Item "$env:GITHUB_WORKSPACE\BlackDragon_v14\docs\vibecode\T17_22_py_protection\OWNER_QA_CHECKLIST.md" $b -Force
           Write-Host "CURRENT MetaEditor PASS 0 errors/0 warnings HEAD=$head TREE=$tree EX5=$hash SIZE=$size"
-      - name: Execute complete 34-suite native matrix
+      - name: Execute complete 35-suite native matrix
         shell: pwsh
         run: |
           $b="$env:GITHUB_WORKSPACE\build-current-final";$ld="$env:MT5_DIR\MQL5\Logs";$tests=@(
@@ -174,7 +177,7 @@ jobs:
             @{N='RunT1716RebaseCapacityTests';P='T17\.16 native rebase/capacity:\s*(\d+) passed,\s*(\d+) failed';E=18},
             @{N='RunT1715OverlapCapabilityTests';P='T17\.15 native Overlap capability:\s*(\d+) passed,\s*(\d+) failed';E=10},@{N='RunT1714RuntimeTests';P='T17\.14 native runtime:\s*(\d+) passed,\s*(\d+) failed';E=11},@{N='RunT1713ConcurrencyTests';P='T17\.13 native concurrency:\s*(\d+) passed,\s*(\d+) failed';E=23},@{N='RunT1712RuntimeTests';P='T17\.12 runtime tests:\s*(\d+) passed,\s*(\d+) failed';E=21},@{N='RunT1711RuntimeTests';P='T17\.11 runtime tests:\s*(\d+) passed,\s*(\d+) failed';E=30},@{N='RunT1710UnitSystemTests';P='T17\.10 unit tests:\s*(\d+) passed,\s*(\d+) failed';E=43},@{N='RunT179RealTpTests';P='T17\.9 REAL-TP tests:\s*(\d+) passed,\s*(\d+) failed';E=32},@{N='RunT178RuntimeFixTests';P='T17\.8 runtime fix tests:\s*(\d+) passed,\s*(\d+) failed';E=25},
             @{N='RunT177SchedulerTests';P='T17\.7 C1 scheduler tests:\s*(\d+) passed,\s*(\d+) failed';E=11},@{N='RunT177AnchorTests';P='T17\.7 C2 anchor tests:\s*(\d+) passed,\s*(\d+) failed';E=14},@{N='RunT177OverlapTests';P='T17\.7 C3 Overlap tests:\s*(\d+) passed,\s*(\d+) failed';E=26},@{N='RunT177HedgeLadderTests';P='T17\.7 C4 Hedge ladder tests:\s*(\d+) passed,\s*(\d+) failed';E=20},@{N='RunT177MigrationTests';P='T17\.7 C5 migration tests:\s*(\d+) passed,\s*(\d+) failed';E=39},@{N='RunT177JournalTests';P='T17\.7 C6 journal tests:\s*(\d+) passed,\s*(\d+) failed';E=24},
-            @{N='RunPyramidT17Tests';P='Pyramid T17\.5 tests:\s*(\d+) passed,\s*(\d+) failed';E=116},@{N='RunTests';P='BlackDragon v14 unit tests:\s*(\d+) passed,\s*(\d+) failed';E=246},@{N='RunRecoveryFoundationTests';P='Recovery T1 foundation tests:\s*(\d+) passed,\s*(\d+) failed';E=26},@{N='RunRecoveryMutationTests';P='Recovery T13 mutation policy tests:\s*(\d+) passed,\s*(\d+) failed';E=26},@{N='RunRecoveryIdentityTests';P='Recovery T14 identity tests:\s*(\d+) passed,\s*(\d+) failed';E=17},@{N='RunRecoveryArcsTests';P='Recovery T16 ARCS tests:\s*(\d+) passed,\s*(\d+) failed';E=33},@{N='RunRecoveryLivenessTests';P='Recovery T16\.3 liveness tests:\s*(\d+) passed,\s*(\d+) failed';E=18},@{N='RunRecoveryReachabilityTests';P='Recovery T16\.4 reachability tests:\s*(\d+) passed,\s*(\d+) failed';E=20},@{N='RunRecoveryT165Tests';P='Recovery T16\.5 guard/margin/log tests:\s*(\d+) passed,\s*(\d+) failed';E=20},@{N='RunRecoveryT166Tests';P='Recovery T16\.6 broker-min tests:\s*(\d+) passed,\s*(\d+) failed';E=16},@{N='RunT176HardeningTests';P='T17\.6 hardening tests:\s*(\d+) passed,\s*(\d+) failed';E=14})
+            @{N='RunPyramidT17Tests';P='Pyramid T17\.5 tests:\s*(\d+) passed,\s*(\d+) failed';E=116},@{N='RunTests';P='BlackDragon v14 unit tests:\s*(\d+) passed,\s*(\d+) failed';E=246},@{N='RunRecoveryFoundationTests';P='Recovery T1 foundation tests:\s*(\d+) passed,\s*(\d+) failed';E=26},@{N='RunRecoveryMutationTests';P='Recovery T13 mutation policy tests:\s*(\d+) passed,\s*(\d+) failed';E=26},@{N='RunRecoveryIdentityTests';P='Recovery T14/T18\.01 identity tests:\s*(\d+) passed,\s*(\d+) failed';E=24},@{N='RunRecoveryArcsTests';P='Recovery T16 ARCS tests:\s*(\d+) passed,\s*(\d+) failed';E=33},@{N='RunRecoveryLivenessTests';P='Recovery T16\.3 liveness tests:\s*(\d+) passed,\s*(\d+) failed';E=18},@{N='RunRecoveryReachabilityTests';P='Recovery T16\.4 reachability tests:\s*(\d+) passed,\s*(\d+) failed';E=20},@{N='RunRecoveryT165Tests';P='Recovery T16\.5 guard/margin/log tests:\s*(\d+) passed,\s*(\d+) failed';E=20},@{N='RunRecoveryT166Tests';P='Recovery T16\.6 broker-min tests:\s*(\d+) passed,\s*(\d+) failed';E=16},@{N='RunT176HardeningTests';P='T17\.6 hardening tests:\s*(\d+) passed,\s*(\d+) failed';E=14})
           foreach($t in $tests){Get-Process terminal64 -ErrorAction SilentlyContinue|Stop-Process -Force;New-Item -ItemType Directory -Force $ld|Out-Null;Get-ChildItem $ld -Filter '*.log' -ErrorAction SilentlyContinue|Remove-Item -Force -ErrorAction SilentlyContinue;$cfg="$b\$($t.N).ini";$txt="[Common]`r`nNewsEnable=0`r`n[Experts]`r`nAllowLiveTrading=0`r`nAllowDllImport=0`r`nEnabled=1`r`n[StartUp]`r`nScript=BlackDragon\Tests\$($t.N)`r`nSymbol=EURUSD`r`nPeriod=M1`r`nShutdownTerminal=1`r`n";[IO.File]::WriteAllText($cfg,$txt,[Text.Encoding]::Unicode);$p=Start-Process "$env:MT5_DIR\terminal64.exe" -ArgumentList "/portable /config:`"$cfg`"" -PassThru;$dl=(Get-Date).AddMinutes(4);while(-not$p.HasExited-and(Get-Date)-lt$dl){Start-Sleep 2;$p.Refresh()};if(-not$p.HasExited){Stop-Process -Id $p.Id -Force;throw "$($t.N) timeout"};$logs=Get-ChildItem $ld -Filter '*.log'|Sort-Object LastWriteTime;if(-not$logs){throw "$($t.N) log missing"};$raw=Get-Content $logs[-1].FullName -Raw;Copy-Item $logs[-1].FullName "$b\$($t.N)-native.log" -Force;Write-Host $raw;$m=[regex]::Match($raw,$t.P);if(-not$m.Success-or[int]$m.Groups[1].Value-ne$t.E-or[int]$m.Groups[2].Value-ne0-or$raw-notmatch'ALL GREEN'){throw "$($t.N) native mismatch expected $($t.E)/0"}}
           Write-Host 'CURRENT NATIVE MATRIX GREEN'
       - uses: actions/upload-artifact@v4

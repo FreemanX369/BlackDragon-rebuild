@@ -16,11 +16,20 @@ b=json.loads(rd(D/'BASELINE_SOURCE.json'))
 ck(a['baseline_head']==b['head']==c['implementation_baseline']['head'],'exact implementation baseline bound')
 ck(a['owner_request'].startswith('Dùng @Vibecode MQL5') and a['approval_kind']=='explicit natural-language task instruction','real instruction authorizes build')
 allowed=c['allowed_path_scopes']['all']+[
+ # T18 approved Fluid integration points; exact scope/semantics are locked by
+ # t18_fluid_source_contract.py and the full legacy model/native matrix.
+ 'BlackDragon_v14/Include/BlackDragon/SignalEngine.mqh',
+ 'BlackDragon_v14/Include/BlackDragon/EntryFilters.mqh',
+ 'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryDcaT1713.mqh',
+ 'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryArcsStackT177HedgeLadder.mqh',
  # Explicit T17.26 supersession, verified by t1726_source_contract.py.
  'BlackDragon_v14/Include/BlackDragon/Logger.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryDca.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryExecutionIdentity.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryExitCoordinatorT177Base.mqh',
+ # T18.01 approved account-liquidation hardening; exact positive-TP reserve and
+ # immediate-SL semantics are locked by t1801_hardening_model.py + native CI.
+ 'BlackDragon_v14/Include/BlackDragon/MoneyGuard.mqh',
 ]
 for x in b['files']:
  p=REPO/x['path'];s=rd(p)
@@ -70,7 +79,8 @@ ck('ArrayResize' not in layer and 'SortPositions' not in layer and 'units+=volum
 campaign=body(rd(INC/'Pyramid/CorePyramid.mqh'),'bool RefreshCampaignStats(','bool CampaignHistoryReady(')
 ck('m_statsRevision[dir]==g_pyramidDealRevision' in campaign and 'm_statsAt[dir] == now' not in campaign,'quiet campaign totals use event revision')
 wf=rd(REPO/'.github/workflows/verify-current.yml')
-ck(all(x in wf for x in ['t1724_source_contract.py','t1724_integration.py','t1724_gate_integration.py','run_host_gates.py','RunT1724CashLedgerTests']),'all new evidence layers enrolled in canonical CI')
+host=rd(ROOT/'Scripts/BlackDragon/Tests/run_host_gates.py')
+ck(all(x in wf for x in ['t1724_source_contract.py','run_host_gates.py','RunT1724CashLedgerTests']) and all(x in host for x in ['t1724_integration.py','t1724_gate_integration.py']),'all new evidence layers enrolled in canonical CI')
 ck(not a['release_eligible'] and not a['forward_eligible'] and not a['live_eligible'],'no unsupported release promotion')
 fails=[n for ok,n in checks if not ok]
 print(f'T17.24 source contract: {len(checks)-len(fails)} passed, {len(fails)} failed')

@@ -68,7 +68,7 @@ def main():
     (regression / 'results.json').write_text(json.dumps(checks, indent=2))
     print('Regression:', sum(x['status'] == 'PASS' for x in checks), '/', len(checks), flush=True)
     integrations = []
-    for script, folder, expected_fixtures, expected_assertions in [('t1724_integration.py', 'integration', 3, 64), ('t1724_gate_integration.py', 'extra', 3, 53), ('t1725_integration.py', 't1725', 6, 115), ('t1726_integration.py', 't1726', 1, 132)]:
+    for script, folder, expected_fixtures, expected_assertions in [('t1724_integration.py', 'integration', 3, 64), ('t1724_gate_integration.py', 'extra', 3, 53), ('t1725_integration.py', 't1725', 6, 115), ('t1726_integration.py', 't1726', 1, 222)]:
         command = [sys.executable, str(TEST / script), '--out', str(out / folder)]
         code, text = execute(command, out / (folder + '.log'))
         counts = re.findall(r'\b(\d+) passed, (\d+) failed', text)

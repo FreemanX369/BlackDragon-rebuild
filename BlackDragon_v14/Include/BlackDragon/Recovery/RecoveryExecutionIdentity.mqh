@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| RecoveryExecutionIdentity.mqh — T14 pure identity policy         |
+//| RecoveryExecutionIdentity.mqh — T18.01 identity hardening        |
 //| Purpose   : deterministic request/deal/protective-SL terminal    |
 //|             policy shared by ExecutionLayer and native tests.    |
 //| Invariants: identity evidence may prove execution even when      |
@@ -42,6 +42,22 @@ bool Recovery_ExecStrictAmbiguousMustBlockPure(const uint retcode,
    return retcode == TRADE_RETCODE_TIMEOUT || retcode == TRADE_RETCODE_CONNECTION;
 }
 
+// T18.01 account-wide flatten ordering. Higher current cash cushion is sent
+// first; non-finite observations are deterministic last-resort entries. Equal
+// cushions use ticket identity as a stable replay-independent tie breaker.
+bool Recovery_AccountFlattenBeforePure(const double cushionA,
+                                       const ulong ticketA,
+                                       const double cushionB,
+                                       const ulong ticketB)
+{
+   bool aValid = MathIsValidNumber(cushionA);
+   bool bValid = MathIsValidNumber(cushionB);
+   if(aValid != bValid) return aValid;
+   if(!aValid) return ticketA < ticketB;
+   if(MathAbs(cushionA - cushionB) > 1e-9) return cushionA > cushionB;
+   return ticketA < ticketB;
+}
+
 bool Recovery_ProtectiveSlIdentityPure(const bool ownerRecoveryMatch,
                                        const bool positionIdentityMatch,
                                        const long dealReason,
@@ -54,18 +70,25 @@ bool Recovery_ProtectiveSlIdentityPure(const bool ownerRecoveryMatch,
 {
    if(!ownerRecoveryMatch || !positionIdentityMatch || dealReason != DEAL_REASON_SL)
       return false;
-   // T17.26: price quality is not ownership. Keep the compatibility argument
-   // fillTolerance, but never let a mutable quote reclassify an immutable SL.
+   // T17.26/T18.01: fill price quality is not ownership. A broker may execute
+   // a correctly programmed SL several ticks beyond the stop during a gap or
+   // fast market. Therefore dealPrice/fillTolerance are validated only as
+   // finite compatibility inputs and never used as an ownership-distance gate.
    if(!MathIsValidNumber(durableTargetSl) || !MathIsValidNumber(programmedSl) ||
       !MathIsValidNumber(dealPrice) || !MathIsValidNumber(slTolerance) ||
-      durableTargetSl <= 0.0 || programmedSl <= 0.0 || dealPrice <= 0.0 ||
-      slTolerance < 0.0)
+      !MathIsValidNumber(fillTolerance) || durableTargetSl <= 0.0 ||
+      programmedSl <= 0.0 || dealPrice <= 0.0 || slTolerance < 0.0 ||
+      fillTolerance < 0.0)
       return false;
 
-   bool programmedMatch = programmedSl > 0.0 &&
-                          MathAbs(programmedSl - durableTargetSl) <= slTolerance + 1e-12;
-   // Callers may use exact MODIFY proof to recover a moved target BEFORE this
-   // call. A proof for another SL must never override a mismatched target here.
+   bool programmedMatch =
+      MathAbs(programmedSl - durableTargetSl) <= slTolerance + 1e-12;
+
+   // Exact MODIFY proof remains supplementary evidence only. It must never
+   // override a programmed-SL mismatch: that would erase the external-mutation
+   // boundary protected by T17.26. T18.01 relaxes only broker fill-price drift.
+   if(confirmedModifyProof && !programmedMatch)
+      return false;
    return programmedMatch;
 }
 

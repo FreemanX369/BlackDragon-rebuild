@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| MoneyGuard.mqh — BlackDragon T17.4                              |
+//| MoneyGuard.mqh — BlackDragon T18.01                             |
 //| Purpose   : FE-401/402 money TP/SL decisions. Absolute-money     |
 //|             guards use CURRENT floating P/L and outrank strategy.|
 //| Invariants: READ-ONLY consumer; NEVER sends trade requests.      |
@@ -21,6 +21,14 @@ enum eGuardAction
 
 bool MG_MoneyTpHit(const double profit, const double tp)
 { return tp > 0 && profit >= tp; }
+
+bool MG_MoneyTpHitBuffered(const double profit, const double tp,
+                           const double liquidationReserveCash)
+{
+   if(tp <= 0.0 || liquidationReserveCash == DBL_MAX ||
+      !MathIsValidNumber(liquidationReserveCash)) return false;
+   return profit + 1e-9 >= tp + MathMax(liquidationReserveCash, 0.0);
+}
 
 bool MG_MoneySlHit(const double profit, const double sl)
 { return sl < 0 && profit <= sl; }
@@ -73,6 +81,65 @@ double MG_PctDiffExecutionReserveCashPure(const double spreadPrice,
    double spread = MathMax(spreadPrice, tickSize);
    double move = 2.0 * spread + MathMax(deviationPrice, 0.0) * requests;
    return move / tickSize * tickValue * totalLots;
+}
+
+// T18.01 account-wide positive Money TP hardening. Floating profit is already
+// marked at current bid/ask, but account-wide liquidation is sequential and can
+// move between trigger and fill. Reserve two spreads plus one deviation per
+// live leg. Invalid economics defer only the positive TP; loss stops remain
+// immediate and never depend on this calculation.
+double MG_AccountLiquidationLegReserveCashPure(const double spreadPrice,
+                                                const double deviationPrice,
+                                                const double lots,
+                                                const double tickSize,
+                                                const double tickValue)
+{
+   if(lots <= 0.0) return 0.0;
+   if(tickSize <= 0.0 || tickValue <= 0.0 ||
+      !MathIsValidNumber(spreadPrice) || !MathIsValidNumber(deviationPrice) ||
+      !MathIsValidNumber(lots) || !MathIsValidNumber(tickSize) ||
+      !MathIsValidNumber(tickValue)) return DBL_MAX;
+   double spread = MathMax(spreadPrice, tickSize);
+   double move = 2.0 * spread + MathMax(deviationPrice, tickSize);
+   double reserve = move / tickSize * tickValue * lots;
+   return MathIsValidNumber(reserve) && reserve >= 0.0 ? reserve : DBL_MAX;
+}
+
+double MG_AccountLiquidationReserveCash()
+{
+   double totalReserve = 0.0;
+   int total = PositionsTotal();
+   for(int i = 0; i < total; i++)
+   {
+      ulong ticket = PositionGetTicket(i);
+      if(ticket == 0) continue;
+      string symbol = PositionGetString(POSITION_SYMBOL);
+      double lots = PositionGetDouble(POSITION_VOLUME);
+      if(symbol == "" || lots <= 0.0) return DBL_MAX;
+
+      MqlTick tick;
+      if(!SymbolInfoTick(symbol, tick) || tick.bid <= 0.0 ||
+         tick.ask <= 0.0 || tick.ask < tick.bid) return DBL_MAX;
+      double tickSize = SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_SIZE);
+      double tickValue = MathMax(MathAbs(SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE)),
+                         MathMax(MathAbs(SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE_PROFIT)),
+                                 MathAbs(SymbolInfoDouble(symbol, SYMBOL_TRADE_TICK_VALUE_LOSS))));
+      if(tickSize <= 0.0 || tickValue <= 0.0) return DBL_MAX;
+
+      double spreadPrice = MathMax(tick.ask - tick.bid, 0.0);
+      double deviationPrice = symbol == _Symbol
+                            ? MathMax(Cfg.SlippagePrice, tickSize)
+                            : tickSize;
+      double legReserve = MG_AccountLiquidationLegReserveCashPure(spreadPrice,
+                                                                   deviationPrice,
+                                                                   lots,
+                                                                   tickSize,
+                                                                   tickValue);
+      if(legReserve == DBL_MAX) return DBL_MAX;
+      totalReserve += legReserve;
+      if(!MathIsValidNumber(totalReserve)) return DBL_MAX;
+   }
+   return totalReserve;
 }
 
 // Pure latch transition used by Strategy: once a close is armed, a later
@@ -161,7 +228,7 @@ public:
       bool any = m_pctDiff > 0 || m_tpAccount > 0 || m_slAccount < 0 || m_tpAll > 0 || m_slAll < 0 ||
                  m_tpHedged > 0 || m_tpBuy > 0 || m_slBuy < 0 || m_tpSell > 0 || m_slSell < 0 ||
                  m_dailyTpM > 0 || m_dailySlM < 0 || m_dailyTpP > 0 || m_dailySlP < 0;
-      if(any) Log_Info("Guard", "MoneyGuard active (FE-401/402) — T17.4 floating-money priority armed");
+      if(any) Log_Info("Guard", "MoneyGuard active (FE-401/402) — T18.01 account-TP liquidation reserve armed");
       if(Halted(TimeCurrent()))
          Log_Info("Guard", "daily halt RESTORED from state file — trading stays halted until " +
                   TimeToString(m_haltUntil, TIME_DATE | TIME_MINUTES));
@@ -171,8 +238,8 @@ public:
    datetime HaltUntil(const datetime now) const { return Halted(now) ? m_haltUntil : 0; }
 
    // P0 T17.4: absolute-money rules operate only on CURRENT floating P/L.
-   // No realized Pyramid/Recovery history is accepted here, so a previously
-   // realized Peel loss can never postpone a configured floating-money exit.
+   // T18.01 changes only positive ACCOUNT TP admission by reserving estimated
+   // liquidation cost. No realized Pyramid/Recovery history participates.
    eGuardAction CheckFloatingPriority(const datetime now,
                                       const double buyFloating,
                                       const double sellFloating,
@@ -189,7 +256,23 @@ public:
       double magicNet = buyFloating + sellFloating;
 
       if(MG_MoneyTpHit(accountFloating, m_tpAccount))
-      { Log_Warn("Guard", "tpacc", "Money TP All account FLOATING: " + DoubleToString(accountFloating, 2) + " >= " + DoubleToString(m_tpAccount, 2)); return GUARD_CLOSE_ACCOUNT; }
+      {
+         double reserve = MG_AccountLiquidationReserveCash();
+         if(MG_MoneyTpHitBuffered(accountFloating, m_tpAccount, reserve))
+         {
+            Log_Warn("Guard", "tpacc", "Money TP All account FUNDED: floating " +
+                     DoubleToString(accountFloating, 2) + " >= target " +
+                     DoubleToString(m_tpAccount, 2) + " + liquidation reserve " +
+                     DoubleToString(MathMax(reserve, 0.0), 2));
+            return GUARD_CLOSE_ACCOUNT;
+         }
+         string reserveText = reserve == DBL_MAX ? "N/A" : DoubleToString(MathMax(reserve, 0.0), 2);
+         Log_WarnEvery("Guard", "tpaccreserve",
+                       "Money TP All account WAIT: raw floating target hit but liquidation reserve not funded | floating=" +
+                       DoubleToString(accountFloating, 2) + " target=" +
+                       DoubleToString(m_tpAccount, 2) + " reserve=" + reserveText,
+                       60);
+      }
       if(MG_MoneySlHit(accountFloating, m_slAccount))
       { Log_Warn("Guard", "slacc", "Money SL All account FLOATING: " + DoubleToString(accountFloating, 2) + " <= " + DoubleToString(m_slAccount, 2)); return GUARD_CLOSE_ACCOUNT; }
 

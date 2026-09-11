@@ -11,6 +11,7 @@
 #define BD_ENTRYFILTERS_MQH
 #include "Types.mqh"
 #include "NewsCalendar.mqh"
+#include "Fluid/FluidRegimeEngine.mqh"
 
 // BD_DIR_BUY / BD_DIR_SELL are shared cross-module identifiers declared in
 // Types.mqh. EntryFilters consumes them but no longer owns their definition.
@@ -21,8 +22,13 @@ class CSpreadFilter : public IEntryFilter
 public:
    bool Allow(const EAContext &ctx, const int dir)
    {
-      if(MaxSpred == 0) return true;
-      return MathMax(ctx.ask - ctx.bid, 0.0) <= Cfg.MaxSpreadPrice + 1e-12;
+      if(MaxSpred != 0 &&
+         MathMax(ctx.ask - ctx.bid, 0.0) > Cfg.MaxSpreadPrice + 1e-12)
+         return false;
+      // T18: this chain is reused for Seed and Core-PY ADD. Fluid detects
+      // same-side Core exposure so the initial Seed remains legacy while
+      // existing campaigns may gate only PY ADD.
+      return Fluid_AllowNewSeriesChain(dir);
    }
 };
 
