@@ -27,6 +27,9 @@ allowed=c['allowed_path_scopes']['all']+[
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryDca.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryExecutionIdentity.mqh',
  'BlackDragon_v14/Include/BlackDragon/Recovery/RecoveryExitCoordinatorT177Base.mqh',
+ # T18.01 approved account-liquidation hardening; exact positive-TP reserve and
+ # immediate-SL semantics are locked by t1801_hardening_model.py + native CI.
+ 'BlackDragon_v14/Include/BlackDragon/MoneyGuard.mqh',
 ]
 for x in b['files']:
  p=REPO/x['path'];s=rd(p)
