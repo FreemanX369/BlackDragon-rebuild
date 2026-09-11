@@ -1,7 +1,7 @@
 name: Compile BlackDragon EX5
 on:
   push:
-    branches: [ import/t1726-incident-fix-20260908 ]
+    branches: [ import/t1726-incident-fix-20260908, feat/t18-fluid-tick-regime ]
     paths:
       - 'BlackDragon_v14/Experts/**'
       - 'BlackDragon_v14/Include/**'
@@ -74,7 +74,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: blackdragon-t1726-native-compile
+          name: blackdragon-t18-native-compile
           path: build-current-final/
           if-no-files-found: warn
           retention-days: 30
