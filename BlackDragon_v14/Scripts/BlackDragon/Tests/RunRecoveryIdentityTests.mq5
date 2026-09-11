@@ -1,5 +1,5 @@
 //+------------------------------------------------------------------+
-//| RunRecoveryIdentityTests.mq5 — T14 deterministic identity tests  |
+//| RunRecoveryIdentityTests.mq5 — T18.01 identity regressions       |
 //+------------------------------------------------------------------+
 #property script_show_inputs
 #include <BlackDragon/Recovery/RecoveryExecutionIdentity.mqh>
@@ -63,8 +63,8 @@ void OnStart()
                                                  true, true, false, true, true,
                                                  0.0, 0.08, 0.01));
 
-   // 8 / 9: protective SL correlation is durable-identity based. Current FSM
-   // state is deliberately absent, so HEDGE_LOCK_PENDING / HEDGE_LOCKED /
+   // Protective SL correlation is durable-identity based. Current FSM state
+   // is deliberately absent, so HEDGE_LOCK_PENDING / HEDGE_LOCKED /
    // already-advanced states all classify the same when identity matches.
    Check("protective SL HEDGE_LOCK_PENDING identity",
          Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
@@ -78,6 +78,27 @@ void OnStart()
          Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
                                            4480.386, 4480.386, 4480.479,
                                            0.02, 0.50, true));
+
+   // T18.01 incident regression: broker filled 2.2 cents beyond the exact
+   // programmed stop. The immutable owner/position/programmed-SL identity must
+   // win; mutable fill price must not become UNPROVEN_EXTERNAL.
+   Check("T18.01 programmed 4647.318 fill 4647.340 remains owned SL",
+         Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
+                                           4647.318, 4647.318, 4647.340,
+                                           0.001, 0.001, false));
+   Check("T18.01 exact MODIFY proof recovers moved durable target",
+         Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
+                                           4647.318, 4647.300, 4647.340,
+                                           0.001, 0.001, true));
+   Check("T18.01 moved target without proof remains external",
+         !Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
+                                            4647.318, 4647.300, 4647.340,
+                                            0.001, 0.001, false));
+   Check("T18.01 wrong deal reason remains external despite MODIFY proof",
+         !Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_TP,
+                                            4647.318, 4647.300, 4647.340,
+                                            0.001, 0.001, true));
+
    Check("random/manual SL target mismatch remains external",
          !Recovery_ProtectiveSlIdentityPure(true, true, DEAL_REASON_SL,
                                             4470.000, 4480.386, 4470.010,
@@ -87,12 +108,12 @@ void OnStart()
                                             4480.386, 4480.386, 4480.479,
                                             0.02, 0.50, true));
 
-   // 10 / 11: flat account releases only terminal-proven journal work.
+   // Flat account releases only terminal-proven journal work.
    Check("global flat plus terminal-proven stale journal can release",
          Recovery_GlobalJournalReleasePure(true, true, false));
    Check("global flat plus ambiguous Recovery OPEN remains blocked",
          !Recovery_GlobalJournalReleasePure(true, false, true));
 
-   PrintFormat("Recovery T14 identity tests: %d passed, %d failed", g_pass, g_fail);
-   if(g_fail == 0) Print("ALL GREEN — T14 execution identity policy passed.");
+   PrintFormat("Recovery T14/T18.01 identity tests: %d passed, %d failed", g_pass, g_fail);
+   if(g_fail == 0) Print("ALL GREEN — execution/protective-SL identity policy passed.");
 }
