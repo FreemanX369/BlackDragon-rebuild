@@ -5,6 +5,7 @@ on:
     paths:
       - 'BlackDragon_v14/Experts/**'
       - 'BlackDragon_v14/Include/**'
+      - 'BlackDragon_v14/Scripts/BlackDragon/Tests/t18_fluid_source_contract.py'
       - '.github/workflows/compile-ex5.yml'
   workflow_dispatch:
 permissions:
@@ -22,6 +23,10 @@ jobs:
         with:
           ref: ${{ env.SOURCE_SHA }}
           fetch-depth: 0
+      - name: T18 fluid source contract
+        shell: pwsh
+        run: |
+          python BlackDragon_v14/Scripts/BlackDragon/Tests/t18_fluid_source_contract.py
       - name: Download and attest MetaTrader installer
         shell: pwsh
         run: |
