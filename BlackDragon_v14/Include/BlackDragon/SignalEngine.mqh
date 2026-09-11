@@ -13,6 +13,7 @@
 #define BD_SIGNALENGINE_MQH
 #include "Types.mqh"
 #include "Logger.mqh"
+#include "Fluid/FluidRegimeEngine.mqh"
 
 class CRsiStochSignal : public ISignal
 {
@@ -54,6 +55,10 @@ public:
    // Fills ctx.signalBuy / ctx.signalSell
    void Compute(EAContext &ctx)
    {
+      // T18: market-state observation only. This never mutates trading state
+      // and remains a strict no-op when UseFluidRegime=false.
+      Fluid_UpdateCurrentTick();
+
       if(m_barFlags != ctx.barTime)
       {
          m_barFlags = ctx.barTime;
